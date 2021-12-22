@@ -3,4 +3,8 @@
 S3method(format,CanonicalForm)
 S3method(print,CanonicalForm)
 export(canonical_form)
+export(check_class)
+export(check_col_classes)
+export(check_colnames)
 export(extract_canonical_form)
+export(to_r_code)

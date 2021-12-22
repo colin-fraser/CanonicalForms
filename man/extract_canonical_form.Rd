@@ -2,16 +2,19 @@
 % Please edit documentation in R/canonical_forms.R
 \name{extract_canonical_form}
 \alias{extract_canonical_form}
-\title{Title}
+\title{Create a CanonicalForm from a data frame}
 \usage{
-extract_canonical_form(x)
+extract_canonical_form(x, transformers = list(), checks = list())
 }
 \arguments{
-\item{x}{}
+\item{x}{dataframe-like}
 }
 \value{
-
+a canonical form
 }
 \description{
-Title
+Create a CanonicalForm from a data frame
+}
+\examples{
+extract_canonical_form(cars)
 }

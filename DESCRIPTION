@@ -14,6 +14,8 @@ Suggests:
 Config/testthat/edition: 3
 RoxygenNote: 7.1.2
 Imports: 
-    glue
+    readr,
+    glue,
+    styler
 URL: https://github.com/colin-fraser/CanonicalForms
 BugReports: https://github.com/colin-fraser/CanonicalForms/issues

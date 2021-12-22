@@ -2,16 +2,29 @@
 % Please edit documentation in R/canonical_forms.R
 \name{canonical_form}
 \alias{canonical_form}
-\title{Title}
+\title{Create a CanonicalForm}
 \usage{
-canonical_form(col_names, col_classes, transformers = list(), checks = list())
+canonical_form(
+  object_class,
+  col_names,
+  col_classes,
+  transformers = list(),
+  checks = list()
+)
 }
 \arguments{
-\item{transformers}{}
+\item{col_names}{a vector of column names}
+
+\item{col_classes}{a vector of column classes}
+
+\item{transformers}{a list of canonicalization functions}
+
+\item{checks}{a list of functions that will be used to check
+if a dataset is canonical}
 }
 \value{
-
+an object of class CanonicalForm
 }
 \description{
-Title
+Create a CanonicalForm
 }
