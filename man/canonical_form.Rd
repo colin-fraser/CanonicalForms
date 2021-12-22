@@ -14,6 +14,8 @@ canonical_form(
 )
 }
 \arguments{
+\item{object_class}{the class of the object}
+
 \item{col_names}{a vector of column names}
 
 \item{col_classes}{a vector of column classes}
@@ -22,6 +24,8 @@ canonical_form(
 
 \item{checks}{a list of functions that will be used to check
 if a dataset is canonical}
+
+\item{add_default_checks}{should the default checks be added?}
 }
 \value{
 an object of class CanonicalForm

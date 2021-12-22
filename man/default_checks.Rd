@@ -6,6 +6,9 @@
 \usage{
 default_checks(form)
 }
+\arguments{
+\item{form}{a CanonicalForm}
+}
 \description{
 Checks added to canonical forms by default
 }

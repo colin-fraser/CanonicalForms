@@ -4,13 +4,12 @@
 \alias{print.CanonicalForm}
 \title{Print Canonical Form}
 \usage{
-\method{print}{CanonicalForm}(x)
+\method{print}{CanonicalForm}(x, ...)
 }
 \arguments{
-\item{x}{}
-}
-\value{
+\item{x}{a CanonicalForm}
 
+\item{...}{other arguments}
 }
 \description{
 Print Canonical Form

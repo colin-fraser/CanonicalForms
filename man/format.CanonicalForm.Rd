@@ -4,13 +4,12 @@
 \alias{format.CanonicalForm}
 \title{Format a canonical form}
 \usage{
-\method{format}{CanonicalForm}(x)
+\method{format}{CanonicalForm}(x, ...)
 }
 \arguments{
-\item{x}{}
-}
-\value{
+\item{x}{a CanonicalForm}
 
+\item{...}{other arguments passed to format}
 }
 \description{
 Format a canonical form

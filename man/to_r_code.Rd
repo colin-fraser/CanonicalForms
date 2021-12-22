@@ -10,7 +10,7 @@ to_r_code(x)
 \item{x}{a canonical form}
 }
 \value{
-
+a character vector containing an R call
 }
 \description{
 Get the R code to create a CanonicalForm

@@ -4,11 +4,13 @@ classes <- function(x) {
 
 #' Create a CanonicalForm
 #'
+#' @param object_class the class of the object
 #' @param col_names a vector of column names
 #' @param col_classes a vector of column classes
 #' @param transformers a list of canonicalization functions
 #' @param checks a list of functions that will be used to check
 #'   if a dataset is canonical
+#' @param add_default_checks should the default checks be added?
 #'
 #' @return an object of class CanonicalForm
 #' @export
@@ -25,20 +27,23 @@ canonical_form <- function(object_class, col_names, col_classes, transformers = 
     ),
     class = "CanonicalForm"
   )
-  out$checks <- c(default_checks(out), out$checks)
+  if (add_default_checks) {
+    out$checks <- c(default_checks(out), out$checks)
+  }
   out
 }
 
 #' Create a CanonicalForm from a data frame
 #'
 #' @param x dataframe-like
+#' @param transformers a list of transformers
+#' @param checks  list of checks
 #'
 #' @return a canonical form
 #' @export
 #'
 #' @examples extract_canonical_form(cars)
-extract_canonical_form <- function(x, transformers = list(),
-                                   checks = list()) {
+extract_canonical_form <- function(x, transformers = list(), checks = list()) {
   canonical_form(
     object_class = class(x),
     col_names = names(x),
@@ -48,6 +53,15 @@ extract_canonical_form <- function(x, transformers = list(),
   )
 }
 
+#' Check if a dataset is canonical
+#'
+#' @param x a dataset
+#' @param form a CanonicalForm
+#' @param verbose print check results?
+#'
+#' @return logical value indicating if the dataset is canonical
+#' @export
+#'
 is_canonical <- function(x, form, verbose = TRUE) {
   nchecks <- n_checks(form)
   check_names <- checks(form)
@@ -63,8 +77,8 @@ is_canonical <- function(x, form, verbose = TRUE) {
   }
   is_canonical <- all(result)
   if (verbose) {
-    pass <- "✅️"
-    fail <- "❌"
+    pass <- "\u2705"
+    fail <- "\u274C"
     emoji <- ifelse(result, pass, fail)
     max_name_length <- max(nchar(check_names))
     msg <- paste0("Checks:\n", bullets(paste0(stringr::str_pad(check_names, width = max_name_length + 4,
@@ -76,25 +90,25 @@ is_canonical <- function(x, form, verbose = TRUE) {
 
 #' Format a canonical form
 #'
-#' @param x
+#' @param x a CanonicalForm
+#' @param ... other arguments passed to format
 #'
-#' @return
 #' @export
 #'
-format.CanonicalForm <- function(x) {
+format.CanonicalForm <- function(x, ...) {
   coltypes <- paste(paste0("  ", x$col_names), x$col_classes, sep = ": ", collapse = "\n")
-  glue::glue("Canonical Form for object of class: {dput_to_str(x$object_class)}
-              {coltypes}")
+  as.character(glue::glue("Canonical Form for object of class: {dput_to_str(x$object_class)}
+              {coltypes}"))
 }
 
 #' Print Canonical Form
 #'
-#' @param x
+#' @param x a CanonicalForm
+#' @param ... other arguments
 #'
-#' @return
 #' @export
 #'
-print.CanonicalForm <- function(x) {
+print.CanonicalForm <- function(x, ...) {
   cat(format(x))
 }
 
@@ -103,8 +117,9 @@ print.CanonicalForm <- function(x) {
 #'
 #' @param x a canonical form
 #'
-#' @return
+#' @return a character vector containing an R call
 #' @export
+#' @importFrom utils capture.output
 #'
 to_r_code <- function(x) {
   calls <- lapply(x, dput_to_str)
@@ -150,7 +165,7 @@ add_check <- function(cf, ...) {
 }
 
 transform_canonical <- function(x, cf, transformer, handle = c('warn', 'stop', 'none')) {
-  handle <- arg.match(handle)
+  handle <- match.arg(handle)
   stopifnot(transformer %in% transformers(cf))
   transform <- cf$transformers[[transformer]]
   out <- transform(x)

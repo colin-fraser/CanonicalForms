@@ -21,6 +21,6 @@ test_that("adding checks", {
   expect_true(is_canonical(dplyr::starwars, cf, verbose = FALSE))
   cf <- add_check(cf, "min_height" = function(x) all(x$height>100, na.rm = TRUE))
   expect_false(is_canonical(dplyr::starwars, cf, verbose = FALSE))
-  expect_message(is_canonical(dplyr::starwars, cf), regexp = "\\bmin_height.+❌")
+  expect_message(is_canonical(dplyr::starwars, cf), regexp = "\\bmin_height.+\u274C")
 }
 )

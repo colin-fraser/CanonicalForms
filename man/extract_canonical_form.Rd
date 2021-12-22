@@ -8,6 +8,10 @@ extract_canonical_form(x, transformers = list(), checks = list())
 }
 \arguments{
 \item{x}{dataframe-like}
+
+\item{transformers}{a list of transformers}
+
+\item{checks}{list of checks}
 }
 \value{
 a canonical form
