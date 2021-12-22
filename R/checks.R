@@ -26,7 +26,8 @@ check_col_classes <- function(x, canonical_form) {
 
 #' Checks added to canonical forms by default
 #' @export
-default_checks <- function() {
-  list(check_class = check_class, check_colnames = check_colnames,
-       check_col_classes = check_col_classes)
+default_checks <- function(form) {
+  list(check_class = \(x) check_class(x, form),
+       check_colnames = \(x) check_colnames(x, form),
+       check_col_classes = \(x) check_col_classes(x, form))
 }

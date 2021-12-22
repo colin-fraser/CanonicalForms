@@ -9,7 +9,8 @@ canonical_form(
   col_names,
   col_classes,
   transformers = list(),
-  checks = list()
+  checks = list(),
+  add_default_checks = TRUE
 )
 }
 \arguments{
