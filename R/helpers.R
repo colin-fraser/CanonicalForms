@@ -3,5 +3,5 @@ dput_to_str <- function(x) {
 }
 
 bullets <- function(x) {
-  paste("  *", x, collapse = '\n')
+  paste("  *", x, collapse = "\n")
 }

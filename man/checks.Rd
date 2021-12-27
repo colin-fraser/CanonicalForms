@@ -7,16 +7,14 @@
 \alias{check_col_classes}
 \title{Built-in checks}
 \usage{
-check_class(x, canonical_form)
+check_class(form)
 
-check_colnames(x, canonical_form)
+check_colnames(form)
 
-check_col_classes(x, canonical_form)
+check_col_classes(form)
 }
 \arguments{
-\item{x}{the object to check}
-
-\item{canonical_form}{canonical form to check against}
+\item{form}{canonical form to check against}
 }
 \value{
 logical indicating whether the check is passed

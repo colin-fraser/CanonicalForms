@@ -81,8 +81,10 @@ is_canonical <- function(x, form, verbose = TRUE) {
     fail <- "\u274C"
     emoji <- ifelse(result, pass, fail)
     max_name_length <- max(nchar(check_names))
-    msg <- paste0("Checks:\n", bullets(paste0(stringr::str_pad(check_names, width = max_name_length + 4,
-                                   side = 'right', pad = '.'), emoji)))
+    msg <- paste0("Checks:\n", bullets(paste0(stringr::str_pad(check_names,
+      width = max_name_length + 4,
+      side = "right", pad = "."
+    ), emoji)))
     message(msg)
   }
   is_canonical
@@ -155,30 +157,22 @@ n_checks <- function(cf) {
   length(checks(cf))
 }
 
-add_check <- function(cf, ...) {
-  kwargs <- list(...)
-  if (is.null(names(kwargs))) {
-    stop("Arguments must be named")
-  }
-  cf$checks <- c(cf$checks, kwargs)
-  cf
-}
 
-transform_canonical <- function(x, cf, transformer, handle = c('warn', 'stop', 'none')) {
+transform_canonical <- function(x, cf, transformer, handle = c("warn", "stop", "none")) {
   handle <- match.arg(handle)
   stopifnot(transformer %in% transformers(cf))
   transform <- cf$transformers[[transformer]]
   out <- transform(x)
-  if (handle == 'none') {
-    return (out)
+  if (handle == "none") {
+    return(out)
   }
   canonical <- is_canonical(out, cf)
   error_msg <- "Transformer does not lead to canonical form!"
-  if (handle == 'warn') {
+  if (handle == "warn") {
     warning(error_msg)
-    return (out)
+    return(out)
   }
-  if (handle == 'none') {
+  if (handle == "none") {
     stop(error_msg)
   }
 }
