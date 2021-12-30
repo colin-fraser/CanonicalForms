@@ -1,91 +1,143 @@
-#' Built-in checks
-#'
-#' @param form canonical form to check against
-#' @name checks
-#' @return logical indicating whether the check is passed
+run_check <- function(check_name, cf, ...) {
+  run_in_cf_env(cf, check_name, ...)
+}
 
+run_all_checks <- function(x, cf) {
+  checks <- get_checks(cf)
+  lapply(checks, run_check, cf = cf, x = x)
+}
 
-#' @export
-#' @rdname checks
-check_class <- function(form) {
-  object_class <- form$object_class
-  inner <- function(x) {
-    all(class(x) == object_class)
+get_from_caller_env_recursive <- function(nm, i = 1, recursion_limit = 100) {
+  if (i > recursion_limit) {
+    abort("recursion limit reached")
   }
-  body(inner) <- do.call("substitute", list(body(inner)))
-  inner
-}
-
-#' @export
-#' @rdname checks
-check_colnames <- function(form) {
-  col_names <- form$col_names
-  inner <- function(x) {
-    all(names(x) == col_names)
+  env <- caller_env(i)
+  if (env_has(env, nm)) {
+    return(env_get(env, nm, default = NA))
+  } else if (identical(env, global_env())) {
+    abort(glue::glue("{nm} not found"))
+  } else {
+    return(get_from_caller_env_recursive(nm, i + 2))
   }
-  body(inner) <- do.call("substitute", list(body(inner)))
-  inner
 }
 
-#' @export
-#' @rdname checks
-check_col_classes <- function(form) {
-  col_classes <- form$col_classes
-  inner <- function(x) {
-    all(classes(x) == col_classes)
+get_property <- function(nm, cf = NULL) {
+  if (is.null(cf)) {
+    return(get_from_caller_env_recursive(nm = nm))
+  } else {
+    env <- get_check_env(cf)
+    env_get(env, nm, default = NULL)
   }
-  body(inner) <- do.call("substitute", list(body(inner)))
-  inner
+}
+
+run_in_cf_env <- function(cf, f, ...) {
+  env <- get_check_env(cf)
+  exec(f, ..., .env = get_check_env(cf))
 }
 
 
-
-#' Checks added to canonical forms by default
-#'
-#' @param form a CanonicalForm
-#' @export
-default_checks <- function(form) {
-  list(
-    check_class = check_class(form),
-    check_colnames = check_colnames(form),
-    check_col_classes = check_col_classes(form)
-  )
+determine_env <- function(cf) {
+  if (is.null(cf)) {
+    env <- caller_env()
+  } else {
+    env <- cf$check_env
+  }
+  env
 }
 
+result_list_to_logical <- function(result_list) {
+  vapply(result_list, as.logical, logical(1))
+}
 
-#' Add a check to a canonical form
-#'
-#' @param cf CanonicalForm object
-#' @param ... named arguments where each name is the name of the check, and each value
-#'   is a check function
-#'
-#' @return a CanonicalForm object with the additional check
-#' @export
-#'
+result_list_to_string <- function(result_list) {
+  paste0(vapply(result_list, function(x) if (as.logical(x)) "P" else "F", character(1)), collapse = "")
+}
+
 add_check <- function(cf, ...) {
-  kwargs <- list(...)
-  stopifnot(
-    "Arguments must be named" = !is.null(names(kwargs)),
-    "Check functions must have arguments c('x', 'form')" = verify_checks_are_well_formed(kwargs)
-  )
-  cf$checks <- c(cf$checks, kwargs)
+  cf$checks <- c(cf$checks, list(...))
   cf
 }
 
-verify_checks_are_well_formed <- function(list_of_checks) {
-  all(sapply(list_of_checks, function(f) names(formals(f)) == c("x", "form")))
+
+canonical_object_class <- function(cf = NULL) {
+  get_property(".object_class", cf)
 }
 
-#' Built-in check makers
-#'
-#' @param cols columns to apply the check to
-#'
-#' @return a function that can be added to canonical form checks
-#' @export
-#'
-make_check_no_nas <- function(cols) {
-  function(x, form) {
-    out <- apply(x[,cols], 2, function(y) !anyNA(y))
-    return(all(out))
+canonical_col_names <- function(cf = NULL) {
+  get_property(".col_names", cf)
+}
+
+canonical_col_classes <- function(cf = NULL) {
+  get_property(".col_classes", cf)
+}
+
+check_result <- function(result, msg) {
+  stopifnot(
+    "result must be logical" = class(result) == "logical",
+    "result must be of length 1" = length(result) == 1
+  )
+  structure(list(result = result, msg = msg), class = "check_result")
+}
+
+check_descriptor <- function(r) {
+  stopifnot(class(r) == "check_result")
+  if (as.logical(r)) {
+    return("passed")
+  } else if (!as.logical(r)) {
+    return("failed")
+  } else {
+    (
+      stop("Couldn't coerce result to logical")
+    )
   }
+}
+
+check_info <- function(r) {
+  r$msg
+}
+
+#' @export
+format.check_result <- function(x) {
+  out <- paste(check_descriptor(x), "check")
+  if (!as.logical(x)) {
+    out <- paste(out, "\nAdditional info:", check_info(x), sep = "\n")
+  }
+  out
+}
+
+#' @export
+print.check_result <- function(x) {
+  cat(format(x))
+}
+
+#' Convert check result to logical
+#' @export
+as.logical.check_result <- function(x) {
+  x$result
+}
+
+compare_vecs <- function(canonical, given) {
+  msg <- waldo::compare(canonical, given, x_arg = "canonical", y_arg = "given")
+  result <- length(msg) == 0
+  check_result(result, msg)
+}
+
+check_class <- function(x) {
+  compare_vecs(canonical_object_class(), class(x))
+}
+
+check_col_names <- function(x) {
+  compare_vecs(canonical_col_names(), colnames(x))
+}
+
+check_col_classes <- function(x) {
+  compare_vecs(canonical_col_classes(), classes(x))
+}
+
+default_checks <- function() {
+  list(
+    check_class = check_class,
+    check_col_names = check_col_names,
+    check_col_classes = check_col_classes
+  )
 }
