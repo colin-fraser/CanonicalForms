@@ -99,6 +99,7 @@ test_that("check descriptor", {
   expect_equal(check_descriptor(r), "failed")
   r <- compare_vecs(1, 1)
   expect_equal(check_descriptor(r), "passed")
+  expect_error(check_descriptor("hello"))
 })
 
 test_that("compare_vecs works", {

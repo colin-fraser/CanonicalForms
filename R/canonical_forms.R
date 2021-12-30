@@ -1,7 +1,3 @@
-classes <- function(x) {
-  unname(sapply(x, class, USE.NAMES = FALSE))
-}
-
 #' Create a CanonicalForm
 #'
 #' @param object_class the class of the object
@@ -105,13 +101,32 @@ print.CanonicalForm <- function(x, ...) {
   cat(format(x))
 }
 
-
 get_check_env <- function(cf) {
   cf$check_env
 }
 
 get_checks <- function(cf) {
   cf$checks
+}
+
+get_properties <- function(cf) {
+  unlist(as.list(cf$check_env, all.names = TRUE))
+}
+
+#' @export
+Ops.CanonicalForm <- function(e1, e2) {
+  if (!testthat::is_testing()) {
+    rlang::warn("Comparison of canonical forms is implemented to ease testing, but shouldn't be trusted in general
+        as functions are not easy to compare.")
+  }
+  switch(.Generic,
+    "==" = {
+      identical(get_check_names(e1), get_check_names(e2)) &&
+        identical(get_transformer_names(e1), get_transformer_names(e2)) &&
+        identical(get_properties(e1), get_properties(e2))
+    },
+    stop(glue::glue("Comparison `{.Generic}` not implemented"))
+  )
 }
 
 
@@ -138,7 +153,8 @@ to_r_code <- function(x) {
                     col_names = {col_names},
                     col_classes = {col_classes},
                     transformers = {transformers},
-                    checks = {checks})"
+                    checks = {checks},
+                    add_default_checks = FALSE)"
   )
   styler::style_text(out)
 }
@@ -156,17 +172,19 @@ get_transformers <- function(cf) {
   cf$transformers
 }
 
-transformers <- function(cf) {
+get_transformer_names <- function(cf) {
   names(cf$transformers)
 }
 
-checks <- function(cf) {
+get_check_names <- function(cf) {
   names(cf$checks)
 }
 
 n_checks <- function(cf) {
-  length(checks(cf))
+  length(get_check_names(cf))
 }
+
+
 
 
 transform_canonical <- function(x, cf, transformer, handle = c("warn", "stop", "none")) {
