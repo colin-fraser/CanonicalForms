@@ -15,8 +15,12 @@ classes <- function(x) {
 #' @return an object of class CanonicalForm
 #' @export
 #'
-canonical_form <- function(object_class, col_names, col_classes, transformers = list(),
-                           checks = list(), add_default_checks = TRUE) {
+canonical_form <- function(object_class,
+                           col_names,
+                           col_classes,
+                           transformers = list(),
+                           checks = list(),
+                           add_default_checks = TRUE) {
   check_env <- env(
     .object_class = object_class,
     .col_names = col_names,
@@ -78,9 +82,16 @@ is_canonical <- function(x, form, verbose = TRUE) {
 #' @export
 #'
 format.CanonicalForm <- function(x, ...) {
-  coltypes <- paste(paste0("  ", canonical_col_names(x)), canonical_col_classes(x), sep = ": ", collapse = "\n")
-  as.character(glue::glue("Canonical Form for object of class: {dput_to_str(canonical_object_class(x))}
-              {coltypes}"))
+  coltypes <- paste(
+    paste0("  ", canonical_col_names(x)),
+    canonical_col_classes(x),
+    sep = ": ",
+    collapse = "\n"
+  )
+  glue::glue(
+    "Canonical Form for object of class: {dput_to_str(canonical_object_class(x))}
+              {coltypes}"
+  )
 }
 
 #' Print Canonical Form
@@ -114,12 +125,15 @@ get_checks <- function(cf) {
 #' @importFrom utils capture.output
 #'
 to_r_code <- function(x) {
-  object_class <- dput_to_str(canonical_object_class(x))
-  col_names <- dput_to_str(canonical_col_names(x))
-  col_classes <- dput_to_str(canonical_col_classes(x))
-  transformers <- dput_to_str(get_transformers(x))
-  checks <- dput_to_str(get_checks(x))
-  out <- glue::glue(
+  calls <- list(
+    object_class = dput_to_str(canonical_object_class(x)),
+    col_names = dput_to_str(canonical_col_names(x)),
+    col_classes = dput_to_str(canonical_col_classes(x)),
+    transformers = dput_to_str(get_transformers(x)),
+    checks = dput_to_str(get_checks(x))
+  )
+  out <- glue::glue_data(
+    calls,
     "canonical_form(object_class = {object_class},
                     col_names = {col_names},
                     col_classes = {col_classes},
@@ -156,20 +170,5 @@ n_checks <- function(cf) {
 
 
 transform_canonical <- function(x, cf, transformer, handle = c("warn", "stop", "none")) {
-  handle <- match.arg(handle)
-  stopifnot(transformer %in% transformers(cf))
-  transform <- cf$transformers[[transformer]]
-  out <- transform(x)
-  if (handle == "none") {
-    return(out)
-  }
-  canonical <- is_canonical(out, cf)
-  error_msg <- "Transformer does not lead to canonical form!"
-  if (handle == "warn") {
-    warning(error_msg)
-    return(out)
-  }
-  if (handle == "none") {
-    stop(error_msg)
-  }
+  return(FALSE)
 }

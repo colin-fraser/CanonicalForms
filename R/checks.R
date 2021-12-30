@@ -31,7 +31,6 @@ get_property <- function(nm, cf = NULL) {
 }
 
 run_in_cf_env <- function(cf, f, ...) {
-  env <- get_check_env(cf)
   exec(f, ..., .env = get_check_env(cf))
 }
 
