@@ -17,18 +17,22 @@ classes <- function(x) {
 #'
 canonical_form <- function(object_class, col_names, col_classes, transformers = list(),
                            checks = list(), add_default_checks = TRUE) {
+  check_env <- env(
+    .object_class = object_class,
+    .col_names = col_names,
+    .col_classes = col_classes
+  )
+
   out <- structure(
     list(
-      object_class = object_class,
-      col_names = col_names,
-      col_classes = col_classes,
+      check_env = check_env,
       transformers = transformers,
       checks = checks
     ),
     class = "CanonicalForm"
   )
   if (add_default_checks) {
-    out$checks <- c(default_checks(out), out$checks)
+    out$checks <- c(default_checks(), out$checks)
   }
   out
 }
@@ -63,31 +67,7 @@ extract_canonical_form <- function(x, transformers = list(), checks = list()) {
 #' @export
 #'
 is_canonical <- function(x, form, verbose = TRUE) {
-  nchecks <- n_checks(form)
-  check_names <- checks(form)
-  if (nchecks == 0) {
-    warning("No checks for canonical form")
-    return(TRUE)
-  }
-  result <- logical(nchecks)
-  names(result) <- check_names
-  for (name in check_names) {
-    fn <- form$checks[[name]]
-    result[name] <- fn(x)
-  }
-  is_canonical <- all(result)
-  if (verbose) {
-    pass <- "\u2705"
-    fail <- "\u274C"
-    emoji <- ifelse(result, pass, fail)
-    max_name_length <- max(nchar(check_names))
-    msg <- paste0("Checks:\n", bullets(paste0(stringr::str_pad(check_names,
-      width = max_name_length + 4,
-      side = "right", pad = "."
-    ), emoji)))
-    message(msg)
-  }
-  is_canonical
+  all(result_list_to_logical(run_all_checks(x, form)))
 }
 
 #' Format a canonical form
@@ -98,8 +78,8 @@ is_canonical <- function(x, form, verbose = TRUE) {
 #' @export
 #'
 format.CanonicalForm <- function(x, ...) {
-  coltypes <- paste(paste0("  ", x$col_names), x$col_classes, sep = ": ", collapse = "\n")
-  as.character(glue::glue("Canonical Form for object of class: {dput_to_str(x$object_class)}
+  coltypes <- paste(paste0("  ", canonical_col_names(x)), canonical_col_classes(x), sep = ": ", collapse = "\n")
+  as.character(glue::glue("Canonical Form for object of class: {dput_to_str(canonical_object_class(x))}
               {coltypes}"))
 }
 
@@ -115,6 +95,16 @@ print.CanonicalForm <- function(x, ...) {
 }
 
 
+get_check_env <- function(cf) {
+  cf$check_env
+}
+
+get_checks <- function(cf) {
+  cf$checks
+}
+
+
+
 #' Get the R code to create a CanonicalForm
 #'
 #' @param x a canonical form
@@ -124,9 +114,12 @@ print.CanonicalForm <- function(x, ...) {
 #' @importFrom utils capture.output
 #'
 to_r_code <- function(x) {
-  calls <- lapply(x, dput_to_str)
-  out <- glue::glue_data(
-    calls,
+  object_class <- dput_to_str(canonical_object_class(x))
+  col_names <- dput_to_str(canonical_col_names(x))
+  col_classes <- dput_to_str(canonical_col_classes(x))
+  transformers <- dput_to_str(get_transformers(x))
+  checks <- dput_to_str(get_checks(x))
+  out <- glue::glue(
     "canonical_form(object_class = {object_class},
                     col_names = {col_names},
                     col_classes = {col_classes},
@@ -143,6 +136,10 @@ add_transformer <- function(canonical_form, ...) {
   }
   canonical_form$transformers <- c(canonical_form$transformers, kwargs)
   canonical_form
+}
+
+get_transformers <- function(cf) {
+  cf$transformers
 }
 
 transformers <- function(cf) {

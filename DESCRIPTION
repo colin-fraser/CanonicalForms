@@ -21,6 +21,8 @@ Imports:
     utils,
     stringr,
     dplyr,
-    tibble
+    tibble,
+    rlang,
+    datasets
 URL: https://github.com/colin-fraser/CanonicalForms
 BugReports: https://github.com/colin-fraser/CanonicalForms/issues
