@@ -10,6 +10,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Suggests: 
+    covr,
     prettycode,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
@@ -23,6 +24,7 @@ Imports:
     dplyr,
     tibble,
     rlang,
-    datasets
+    datasets,
+    waldo
 URL: https://github.com/colin-fraser/CanonicalForms
 BugReports: https://github.com/colin-fraser/CanonicalForms/issues

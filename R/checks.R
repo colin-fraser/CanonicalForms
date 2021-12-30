@@ -79,15 +79,11 @@ check_result <- function(result, msg) {
 }
 
 check_descriptor <- function(r) {
-  stopifnot(class(r) == "check_result")
+  stopifnot("r must be of type `check_result`" = class(r) == "check_result")
   if (as.logical(r)) {
     return("passed")
-  } else if (!as.logical(r)) {
-    return("failed")
   } else {
-    (
-      stop("Couldn't coerce result to logical")
-    )
+    return("failed")
   }
 }
 
@@ -96,7 +92,7 @@ check_info <- function(r) {
 }
 
 #' @export
-format.check_result <- function(x) {
+format.check_result <- function(x, ...) {
   out <- paste(check_descriptor(x), "check")
   if (!as.logical(x)) {
     out <- paste(out, "\nAdditional info:", check_info(x), sep = "\n")
@@ -105,13 +101,12 @@ format.check_result <- function(x) {
 }
 
 #' @export
-print.check_result <- function(x) {
+print.check_result <- function(x, ...) {
   cat(format(x))
 }
 
-#' Convert check result to logical
 #' @export
-as.logical.check_result <- function(x) {
+as.logical.check_result <- function(x, ...) {
   x$result
 }
 
