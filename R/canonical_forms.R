@@ -176,6 +176,16 @@ get_transformer_names <- function(cf) {
   names(cf$transformers)
 }
 
+#' List the names of checks associated with a CanonicalForm
+#'
+#' @param cf a CanonicalForm object
+#'
+#' @return character vector of names of checks
+#' @export
+#'
+#' @examples
+#' cf <- extract_canonical_form(cars)
+#' get_check_names(cf)
 get_check_names <- function(cf) {
   names(cf$checks)
 }

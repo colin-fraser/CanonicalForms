@@ -132,6 +132,11 @@ test_that("built-in checks work", {
   expect_false(as.logical(class_check_failing))
   expect_false(as.logical(cols_check_failing))
   expect_false(as.logical(classes_check_failing))
+
+  # call checks by name
+  dummy_check <- function() TRUE
+  cf <- add_checks(cf, dummy = dummy_check)
+  expect_true(run_check("dummy", cf))
 })
 
 test_that("result list representations", {
@@ -142,13 +147,34 @@ test_that("result list representations", {
   expect_identical(result_list_to_string(rl), "PF")
 })
 
+test_that("add_checks", {
+  cf <- dummy_cf()
+  check <- function(x) TRUE
+  cf <- add_checks(cf, check1 = check)
+  expect_true("check1" %in% get_check_names(cf))
+
+  expect_error(add_checks(cf, check))
+  expect_error(add_checks(cf, c1 = check, check))
+  expect_error(add_checks(cf, check, c1 = check))
+  expect_error(add_checks(cf, check1 = check))
+})
+
+test_that("delete check", {
+  cf <- dummy_cf()
+  check <- function(x) TRUE
+  cf <- add_checks(cf, c1 = check)
+  expect_true("c1" %in% get_check_names(cf))
+  cf <- delete_check(cf, "c1")
+  expect_false("c1" %in% get_check_names(cf))
+})
+
 test_that("test run_all_checks", {
   cf <- dummy_cf()
   obj <- dummy_obj()
   check1 <- function(x) compare_vecs(canonical_col_names(), c("col1", "col2"))
   check2 <- function(x) compare_vecs(canonical_col_classes(), c("class1", "class2"))
   check3 <- function(x) compare_vecs(canonical_col_names(), c("col1", "col2", "col3"))
-  cf <- add_check(cf, check1 = check1, check2 = check2, check3 = check3)
+  cf <- add_checks(cf, check1 = check1, check2 = check2, check3 = check3)
   results <- run_all_checks(obj, cf)
   expect_equal(result_list_to_string(results), "PPF")
 })
