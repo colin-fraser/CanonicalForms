@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/colin-fraser/CanonicalForms/workflows/R-CMD-check/badge.svg)](https://github.com/colin-fraser/CanonicalForms/actions)
 <!-- badges: end -->
 
-The goal of CanonicalForms is to ...
+`CanonicalForms` is an R package for ensuring that data sets conform to an expected format.
 
 ## Installation
 
@@ -31,27 +31,93 @@ You can install the development version of CanonicalForms from [GitHub](https://
 devtools::install_github("colin-fraser/CanonicalForms")
 ```
 
-## Example
+## Basic Example
 
-This is a basic example which shows you how to solve a common problem:
+A `CanonicalForm` allows you to check whether a dataset conforms to an expected format. The following code creates a simple CanonicalForm object for the dataset `cars`, as well as a pair of copies of the dataset, one that conforms to the expected format and one that does not.
 
-```{r example}
+```{r example, message=TRUE, warning=TRUE}
 library(CanonicalForms)
-## basic example code
+
+cf <- canonical_form(
+  object_class = "data.frame",
+  col_names = c("speed", "dist"),
+  col_classes = c("numeric", "numeric")
+)
+
+passing <- cars
+failing <- cars |> 
+  setNames(c("speed", "distance"))
+
+passing |> 
+  is_canonical(cf)  # checking whether `passing` corresponds to the form specified in cf
+
+failing |> 
+  is_canonical(cf)
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+## Extracting and storing a `CanonicalForm`
 
-```{r cars}
-summary(cars)
+It can be a little bit tedious to type out the full canonical schema in the way shown above, especially for datasets with a large number of columns. For this reason, there is an `extract_canonical_form` function which will use a dataset as a template to create a `CanonicalForm` object, as well as a `to_r_code` method that writes the boilerplate code for initializing a new CanonicalForm.
+
+```{r}
+# the starwars dataset is a tibble with 14 columns
+starwars <- dplyr::starwars
+head(starwars)
+
+# this uses the starwars dataset as a template to extract a CanonicalForm
+cf <- extract_canonical_form(starwars)
+to_r_code(cf) # and this writes the boilerplate R code to construct that form
+```
+## Checking if a dataset is Canonical during transformations
+
+Suppose I have a pipeline that does the following transformations to the `starwars` dataset.
+
+```{r message=FALSE, warning=FALSE, echo=FALSE}
+library(dplyr)
+starwars_small <- starwars |> 
+  transmute(name, height, mass = as.integer(mass)) |> 
+  rename_with(toupper)
+
+swcf <- extract_canonical_form(starwars_small)
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/v1/examples>.
+Now I have another script where I'm trying performing the same transformations. I can add a call to `check_canonical` at the end of the transformations to make sure that the pipeline does what I expect. `check_canonical` returns its input, but will raise a warning if the checks fail.
 
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
+```{r}
+starwars_small_2 <- starwars |> 
+  select(name, height, mass) |> 
+  check_canonical(swcf)
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+You can also set it to raise an exception rather than a warning.
+
+```{r eval=FALSE, include=FALSE}
+starwars_small_2 <- starwars |> 
+  select(NAME = name, HEIGHT = height, MASS = mass) |> 
+  check_canonical(swcf, behavior = 'stop')
+```
+
+If the pipeline returns the expected format, nothing visible will happen.
+
+```{r}
+starwars_small_2 <- starwars |> 
+  transmute(NAME = name, HEIGHT = height, MASS = as.integer(mass)) |> 
+  check_canonical(swcf, behavior = 'stop')
+head(starwars_small_2)
+```
+
+## Adding more checks
+
+By default, a newly created `CanonicalForm` objects have three checks: they'll check that the type of dataset matches, the column names match, and the column types match. The package also provides other checks that can be run with `is_canonical` and `check_canonical`, and it's easy to write custom checks and add those as well.
+
+```{r}
+swcf2 <- swcf |> 
+  add_checks(
+    no_nas = check_no_nas(cols = c('NAME')),  # check that no NAME values are NA
+    positive_values = check_greater_than(HEIGHT = 0, MASS = 0)  # check that HEIGHT and MASS are greater than 0
+    )
+
+starwars_small |> 
+  check_canonical(swcf2)
+```
+

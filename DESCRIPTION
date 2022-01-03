@@ -25,6 +25,8 @@ Imports:
     tibble,
     rlang,
     datasets,
-    waldo
+    waldo,
+    crayon,
+    purrr
 URL: https://github.com/colin-fraser/CanonicalForms
 BugReports: https://github.com/colin-fraser/CanonicalForms/issues

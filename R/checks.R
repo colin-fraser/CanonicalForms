@@ -109,13 +109,6 @@ determine_env <- function(cf) {
   env
 }
 
-result_list_to_logical <- function(result_list) {
-  vapply(result_list, as.logical, logical(1))
-}
-
-result_list_to_string <- function(result_list) {
-  paste0(vapply(result_list, function(x) if (as.logical(x)) "P" else "F", character(1)), collapse = "")
-}
 
 #' Add checks or delete check
 #'
@@ -195,45 +188,7 @@ canonical_col_classes <- function(cf = NULL) {
   get_property(".col_classes", cf)
 }
 
-check_result <- function(result, msg) {
-  stopifnot(
-    "result must be logical" = class(result) == "logical",
-    "result must be of length 1" = length(result) == 1
-  )
-  structure(list(result = result, msg = msg), class = "check_result")
-}
 
-check_descriptor <- function(r) {
-  stopifnot("r must be of type `check_result`" = class(r) == "check_result")
-  if (as.logical(r)) {
-    return("passed")
-  } else {
-    return("failed")
-  }
-}
-
-check_info <- function(r) {
-  r$msg
-}
-
-#' @export
-format.check_result <- function(x, ...) {
-  out <- paste(check_descriptor(x), "check")
-  if (!as.logical(x)) {
-    out <- paste(out, "\nAdditional info:", check_info(x), sep = "\n")
-  }
-  out
-}
-
-#' @export
-print.check_result <- function(x, ...) {
-  cat(format(x))
-}
-
-#' @export
-as.logical.check_result <- function(x, ...) {
-  x$result
-}
 
 compare_vecs <- function(canonical, given) {
   msg <- waldo::compare(canonical, given, x_arg = "canonical", y_arg = "given")
@@ -241,14 +196,20 @@ compare_vecs <- function(canonical, given) {
   check_result(result, msg)
 }
 
+#' Built-in checks
+#'
+#' These checks are built-in
+#' @param x a dataframe to check
 check_class <- function(x) {
   compare_vecs(canonical_object_class(), class(x))
 }
 
+#' @describeIn check_class check that the column names match the Canonical Form
 check_col_names <- function(x) {
   compare_vecs(canonical_col_names(), colnames(x))
 }
 
+#' @describeIn check_class check that the classes match the Canonical Form
 check_col_classes <- function(x) {
   compare_vecs(canonical_col_classes(), classes(x))
 }
@@ -259,4 +220,94 @@ default_checks <- function() {
     check_col_names = check_col_names,
     check_col_classes = check_col_classes
   )
+}
+
+logical_vector_to_check_result <- function(vec, header) {
+  test_passed <- all(vec)
+  msg <- ""
+  if (!test_passed) {
+    badcols <- names(vec)[!vec]
+    names(badcols) <- rep("x", length(badcols))
+    msg <- paste(header, rlang::format_error_bullets(badcols), sep = "\n")
+  }
+  check_result(test_passed, msg)
+}
+
+#' Check makers
+#'
+#' Create checks to add to Canonical Forms. Each of these functions returns a function which takes
+#' a dataframe and returns a CheckResult object.
+#'
+#' @param cols character vector of columns to include in the check
+#'
+#' @export
+check_no_nas <- function(cols) {
+  function(x) {
+    result <- apply(x[cols], 2, function(y) !anyNA(y))
+    logical_vector_to_check_result(result, "Unexpected NAs in the following column(s):")
+  }
+}
+
+
+#' @describeIn check_no_nas check that all values are above specified values
+#'
+#' @param ... named arguments of the form (col = constraint)
+#' @param .strict should values equal to the constraint be disallowed?
+#'
+#' @details for \code{check_greater_than} and \code{check_less_than}, different values can be specified for each
+#'    column. See examples.
+#' @export
+#'
+#' @examples
+#' df <- data.frame(a = c(1, 2, NA), b = c(4, 5, 6))
+#' check_na <- check_no_nas("a")
+#' check_na(df) # fails
+#' check_na2 <- check_no_nas("b")
+#' check_na2(df) # passes
+#'
+#' check_gt <- check_greater_than(a = 0, b = 3)
+#' check_gt(df)  # passes
+#' check_gt2 = check_greater_than(a = 1, b = 4, .strict = FALSE)
+#' check_gt2(df)  # passes (because .strict=FALSE)
+#' check_gt3 <- check_greater_than(a = 1, b = 1, .strict = TRUE)
+#' check_gt3(df)  # fails
+check_greater_than <- function(..., .strict = TRUE) {
+  if (.strict) {
+    comparison <- ">"
+  } else {
+    comparison <- ">="
+  }
+  check_comparison(..., comparison = comparison)
+}
+
+#' @export
+#' @describeIn check_no_nas check all values are less than constraints
+check_less_than <- function(..., .strict = TRUE) {
+  if (.strict) comparison <- "<" else comparison <- "<="
+  check_comparison(..., comparison = comparison)
+}
+
+check_comparison <- function(..., comparison) {
+  comp_fn <- get_comparison_operator_from_name(comparison)
+  violation_descriptor <- switch(comparison,
+    ">" = "below minimum",
+    ">=" = "below minimum",
+    "<" = "above maximum",
+    "<=" = "above maximum",
+    stop("unknown")
+  )
+  msg <- paste("Values found", violation_descriptor, "in the following column(s):")
+  function(x) {
+    result <- apply_comparisons_from_named_list(x, comp_fn, list(...))
+    logical_vector_to_check_result(result, msg)
+  }
+}
+
+apply_comparisons_from_named_list <- function(x, comparison, args) {
+  cols <- names(args)
+  purrr::imap_lgl(args, ~ all(comparison(x[.y], .x), na.rm = TRUE))
+}
+
+get_comparison_operator_from_name <- function(comparison) {
+  function(e1, e2) do.call(comparison, list(e1, e2))
 }

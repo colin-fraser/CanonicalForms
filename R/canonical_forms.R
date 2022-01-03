@@ -67,7 +67,30 @@ extract_canonical_form <- function(x, transformers = list(), checks = list()) {
 #' @export
 #'
 is_canonical <- function(x, form, verbose = TRUE) {
-  all(result_list_to_logical(run_all_checks(x, form)))
+  results <- run_all_checks(x, form)
+  passing <- all(result_list_to_logical(results))
+  if (verbose) {
+    rlang::inform(result_list_summary(results))
+  }
+  passing
+}
+
+#' @describeIn is_canonical check if a dataset is canonical and return the dataset
+#' @param behavior what to do if the dataset fails the check
+#' @export
+check_canonical <- function(x, form, behavior = c("warn", "stop", "inform")) {
+  behavior <- rlang::arg_match(behavior)
+  results <- run_all_checks(x, form)
+  passing <- all(result_list_to_logical(results))
+  msg <- result_list_summary(results)
+  if (!passing) {
+    switch(behavior,
+      "warn" = rlang::warn(msg),
+      "stop" = rlang::abort(msg),
+      "inform" = rlang::inform(msg)
+    )
+  }
+  x
 }
 
 #' Format a canonical form

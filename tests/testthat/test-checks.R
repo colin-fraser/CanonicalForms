@@ -178,3 +178,67 @@ test_that("test run_all_checks", {
   results <- run_all_checks(obj, cf)
   expect_equal(result_list_to_string(results), "PPF")
 })
+
+test_that("no nas test", {
+  df <- data.frame(a = c(1, NA), b = c(NA, NA), d = c(1, 2))
+
+  no_nas <- check_no_nas(c("a", "b"))
+  expect_false(as.logical(no_nas(df)))
+  expect_snapshot(no_nas(df))
+
+  no_nas2 <- check_no_nas(c("a", "d"))
+  expect_false(as.logical(no_nas2(df)))
+  expect_snapshot(no_nas2(df))
+
+  no_nas3 <- check_no_nas("d")
+  expect_true(as.logical(no_nas3(df)))
+})
+
+test_that("gt test", {
+  df <- data.frame(a = c(-1, 0, NA), b = c(1, 1, NA))
+  gtt <- check_greater_than(a = 0)
+  expect_false(as.logical(gtt(df)))
+  gtt2 <- check_greater_than(a = -2)
+  expect_true(as.logical(gtt2(df)))
+  gtt3 <- check_greater_than(a = -1, .strict = FALSE)
+  expect_true(as.logical(gtt3(df)))
+
+  cf <- extract_canonical_form(df) |>
+    add_checks(gt = gtt2)
+
+  expect_true(is_canonical(df, cf, verbose = F))
+
+  cf <- extract_canonical_form(df) |>
+    add_checks(gt = gtt)
+
+  expect_false(is_canonical(df, cf, verbose = F))
+
+  expect_snapshot(check_canonical(df, cf))
+})
+
+test_that("less than", {
+  df <- data.frame(a = c(-1, 0, NA), b = c(1, 1, NA))
+  lt1 <- check_less_than(a = 1)
+  expect_true(as.logical(lt1(df)))
+  lt2 <- check_less_than(a = 0, .strict = FALSE)
+  expect_true(as.logical(lt2(df)))
+  lt3 <- check_less_than(a = 0, .strict = TRUE)
+  expect_false(as.logical(lt3(df)))
+  lt4 <- check_less_than(a = -2)
+  expect_false(as.logical(lt4(df)))
+  expect_snapshot(lt1(df))
+  expect_snapshot(lt2(df))
+  expect_snapshot(lt3(df))
+  expect_snapshot(lt4(df))
+})
+
+test_that("logical_vector_to_test_result", {
+  test_fn <- function(vec, msg = "hello") {
+    cr <- logical_vector_to_check_result(vec, msg)
+    as.logical(cr)
+  }
+  expect_true(test_fn(c(a = T)))
+  expect_false(test_fn(c(a = F)))
+  expect_true(test_fn(c(a = T, b = T)))
+  expect_false(test_fn(c(a = T, b = F)))
+})

@@ -2,9 +2,12 @@
 % Please edit documentation in R/canonical_forms.R
 \name{is_canonical}
 \alias{is_canonical}
+\alias{check_canonical}
 \title{Check if a dataset is canonical}
 \usage{
 is_canonical(x, form, verbose = TRUE)
+
+check_canonical(x, form, behavior = c("warn", "stop", "inform"))
 }
 \arguments{
 \item{x}{a dataset}
@@ -12,6 +15,8 @@ is_canonical(x, form, verbose = TRUE)
 \item{form}{a CanonicalForm}
 
 \item{verbose}{print check results?}
+
+\item{behavior}{what to do if the dataset fails the check}
 }
 \value{
 logical value indicating if the dataset is canonical
@@ -19,3 +24,8 @@ logical value indicating if the dataset is canonical
 \description{
 Check if a dataset is canonical
 }
+\section{Functions}{
+\itemize{
+\item \code{check_canonical}: check if a dataset is canonical and return the dataset
+}}
+
