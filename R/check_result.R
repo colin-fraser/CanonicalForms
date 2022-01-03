@@ -60,7 +60,7 @@ result_list_summary <- function(result_list) {
   } else {
     failure_indices <- which(!results, useNames = TRUE)
     failure_summary <- format_failed_tests(result_list[failure_indices])
-    addl_info <- paste("Additional information\n", failure_summary)
+    addl_info <- paste("Additional information:", failure_summary, sep = "\n")
   }
   paste(title, topline_summary, addl_info, "\r", sep = "\n")
 }

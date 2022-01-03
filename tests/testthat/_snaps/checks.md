@@ -32,8 +32,8 @@
       check_col_classes......................✔
       gt.....................................x
       
-      Additional information
-       Failed check: gt
+      Additional information:
+      Failed check: gt
       Values found below minimum in the following column(s):
       x a
       

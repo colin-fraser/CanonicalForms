@@ -61,8 +61,8 @@ failing |>
 #> check_col_names........................x
 #> check_col_classes......................✔
 #> 
-#> Additional information
-#>  Failed check: check_col_names
+#> Additional information:
+#> Failed check: check_col_names
 #> `canonical`: "speed" "dist"    
 #> `given`:     "speed" "distance"
 #> 
@@ -141,8 +141,8 @@ starwars_small_2 <- starwars |>
 #> check_col_names........................x
 #> check_col_classes......................x
 #> 
-#> Additional information
-#>  Failed check: check_col_names
+#> Additional information:
+#> Failed check: check_col_names
 #> `canonical`: "NAME" "HEIGHT" "MASS"
 #> `given`:     "name" "height" "mass"
 #> 
@@ -220,8 +220,8 @@ starwars_small |>
 #> no_nas.................................x
 #> min_values.............................x
 #> 
-#> Additional information
-#>  Failed check: no_nas
+#> Additional information:
+#> Failed check: no_nas
 #> Unexpected NAs in the following column(s):
 #> x HEIGHT
 #> x MASS
