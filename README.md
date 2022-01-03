@@ -194,8 +194,10 @@ write custom checks and add those as well.
 # passing example
 swcf2 <- swcf |> 
   add_checks(
-    no_nas = check_no_nas(cols = c('NAME')),  # check that no NAME values are NA
-    positive_values = check_greater_than(HEIGHT = 0, MASS = 0)  # check that HEIGHT and MASS are greater than 0
+    # check that no NAME values are NA:
+    no_nas = check_no_nas(cols = c('NAME')),  
+    # check that HEIGHT and MASS are greater than 0:
+    positive_values = check_greater_than(HEIGHT = 0,MASS = 0)
     )
 
 starwars_small |> 
@@ -221,7 +223,24 @@ swcf3 <- swcf |>
              min_values = check_greater_than(HEIGHT = 1000, MASS = 0))
 
 starwars_small |> 
-  check_canonical(swcf)
+  check_canonical(swcf3)
+#> Warning: CHECKS SUMMARY
+#> check_class............................✔
+#> check_col_names........................✔
+#> check_col_classes......................✔
+#> no_nas.................................x
+#> min_values.............................x
+#> 
+#> Additional information:
+#> Failed check: no_nas
+#> Unexpected NAs in the following column(s):
+#> x HEIGHT
+#> x MASS
+#> 
+#> Failed check: min_values
+#> Values found below minimum in the following column(s):
+#> x HEIGHT
+#> 
 #> # A tibble: 87 × 3
 #>    NAME               HEIGHT  MASS
 #>    <chr>               <int> <int>

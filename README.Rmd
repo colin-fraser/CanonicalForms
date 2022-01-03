@@ -110,12 +110,14 @@ head(starwars_small_2)
 
 By default, a newly created `CanonicalForm` objects have three checks: they'll check that the type of dataset matches, the column names match, and the column types match. The package also provides other checks that can be run with `is_canonical` and `check_canonical`, and it's easy to write custom checks and add those as well.
 
-```{r}
+```{r message=TRUE, warning=TRUE}
 # passing example
 swcf2 <- swcf |> 
   add_checks(
-    no_nas = check_no_nas(cols = c('NAME')),  # check that no NAME values are NA
-    positive_values = check_greater_than(HEIGHT = 0, MASS = 0)  # check that HEIGHT and MASS are greater than 0
+    # check that no NAME values are NA:
+    no_nas = check_no_nas(cols = c('NAME')),  
+    # check that HEIGHT and MASS are greater than 0:
+    positive_values = check_greater_than(HEIGHT = 0,MASS = 0)
     )
 
 starwars_small |> 
@@ -127,6 +129,6 @@ swcf3 <- swcf |>
              min_values = check_greater_than(HEIGHT = 1000, MASS = 0))
 
 starwars_small |> 
-  check_canonical(swcf)
+  check_canonical(swcf3)
 ```
 
