@@ -182,6 +182,7 @@ can be run with `is_canonical` and `check_canonical`, and it’s easy to
 write custom checks and add those as well.
 
 ``` r
+# passing example
 swcf2 <- swcf |> 
   add_checks(
     no_nas = check_no_nas(cols = c('NAME')),  # check that no NAME values are NA
@@ -190,6 +191,45 @@ swcf2 <- swcf |>
 
 starwars_small |> 
   check_canonical(swcf2)
+#> # A tibble: 87 × 3
+#>    NAME               HEIGHT  MASS
+#>    <chr>               <int> <int>
+#>  1 Luke Skywalker        172    77
+#>  2 C-3PO                 167    75
+#>  3 R2-D2                  96    32
+#>  4 Darth Vader           202   136
+#>  5 Leia Organa           150    49
+#>  6 Owen Lars             178   120
+#>  7 Beru Whitesun lars    165    75
+#>  8 R5-D4                  97    32
+#>  9 Biggs Darklighter     183    84
+#> 10 Obi-Wan Kenobi        182    77
+#> # … with 77 more rows
+
+# failing example
+swcf3 <- swcf |> 
+  add_checks(no_nas = check_no_nas(c("NAME", "HEIGHT", "MASS")),
+             min_values = check_greater_than(HEIGHT = 1000, MASS = 0))
+
+starwars_small |> 
+  check_canonical(swcf3)
+#> Warning: CHECKS SUMMARY
+#> check_class............................✔
+#> check_col_names........................✔
+#> check_col_classes......................✔
+#> no_nas.................................x
+#> min_values.............................x
+#> 
+#> Additional information
+#>  Failed check: no_nas
+#> Unexpected NAs in the following column(s):
+#> x HEIGHT
+#> x MASS
+#> 
+#> Failed check: min_values
+#> Values found below minimum in the following column(s):
+#> x HEIGHT
+#> 
 #> # A tibble: 87 × 3
 #>    NAME               HEIGHT  MASS
 #>    <chr>               <int> <int>
