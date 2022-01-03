@@ -126,6 +126,15 @@ to_r_code(cf) # and this writes the boilerplate R code to construct that form
 Suppose I have a pipeline that does the following transformations to the
 `starwars` dataset.
 
+``` r
+library(dplyr)
+starwars_small <- starwars |> 
+  transmute(name, height, mass = as.integer(mass)) |> 
+  rename_with(toupper)
+
+swcf <- extract_canonical_form(starwars_small)
+```
+
 Now I have another script where I’m trying performing the same
 transformations. I can add a call to `check_canonical` at the end of the
 transformations to make sure that the pipeline does what I expect.
@@ -212,24 +221,7 @@ swcf3 <- swcf |>
              min_values = check_greater_than(HEIGHT = 1000, MASS = 0))
 
 starwars_small |> 
-  check_canonical(swcf3)
-#> Warning: CHECKS SUMMARY
-#> check_class............................✔
-#> check_col_names........................✔
-#> check_col_classes......................✔
-#> no_nas.................................x
-#> min_values.............................x
-#> 
-#> Additional information:
-#> Failed check: no_nas
-#> Unexpected NAs in the following column(s):
-#> x HEIGHT
-#> x MASS
-#> 
-#> Failed check: min_values
-#> Values found below minimum in the following column(s):
-#> x HEIGHT
-#> 
+  check_canonical(swcf)
 #> # A tibble: 87 × 3
 #>    NAME               HEIGHT  MASS
 #>    <chr>               <int> <int>

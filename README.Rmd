@@ -72,7 +72,7 @@ to_r_code(cf) # and this writes the boilerplate R code to construct that form
 
 Suppose I have a pipeline that does the following transformations to the `starwars` dataset.
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
+```{r echo=TRUE, message=FALSE, warning=FALSE}
 library(dplyr)
 starwars_small <- starwars |> 
   transmute(name, height, mass = as.integer(mass)) |> 
@@ -127,6 +127,6 @@ swcf3 <- swcf |>
              min_values = check_greater_than(HEIGHT = 1000, MASS = 0))
 
 starwars_small |> 
-  check_canonical(swcf3)
+  check_canonical(swcf)
 ```
 
