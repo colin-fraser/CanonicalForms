@@ -42,9 +42,9 @@ check_na2 <- check_no_nas("b")
 check_na2(df) # passes
 
 check_gt <- check_greater_than(a = 0, b = 3)
-check_gt(df)  # passes
-check_gt2 = check_greater_than(a = 1, b = 4, .strict = FALSE)
-check_gt2(df)  # passes (because .strict=FALSE)
+check_gt(df) # passes
+check_gt2 <- check_greater_than(a = 1, b = 4, .strict = FALSE)
+check_gt2(df) # passes (because .strict=FALSE)
 check_gt3 <- check_greater_than(a = 1, b = 1, .strict = TRUE)
-check_gt3(df)  # fails
+check_gt3(df) # fails
 }
