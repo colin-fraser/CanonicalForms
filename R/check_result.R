@@ -94,3 +94,9 @@ format_failed_tests <- function(result_list) {
   messages <- sapply(result_list, function(x) x$msg)
   paste(test_names, messages, sep = "\n", collapse = "\n\n")
 }
+
+conjunction <- function(r1, r2) {
+  result <- as.logical(r1) & as.logical(r2)
+  msg <- paste(check_info(r1), check_info(r2), sep = '\n')
+  check_result(result, msg)
+}
