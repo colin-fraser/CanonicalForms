@@ -223,7 +223,7 @@ default_checks <- function() {
 #' @return a CheckResult object
 #'
 #' @examples
-#' vec <- c(a = T, b = F)
+#' vec <- c(a = TRUE, b = FALSE)
 #' # test fails, and message includes "b" as the reason for failing
 #' res <- named_logical_vector_to_check_result(vec, "A test!")
 #' print(res)
@@ -350,7 +350,6 @@ check_comparison <- function(..., comparison) {
 }
 
 apply_comparisons_from_named_list <- function(x, comparison, args) {
-  cols <- names(args)
   purrr::imap_lgl(args, ~ all(comparison(x[.y], .x), na.rm = TRUE))
 }
 

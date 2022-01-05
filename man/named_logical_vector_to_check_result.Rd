@@ -19,9 +19,9 @@ This takes a named logical vector and turns it into a CheckResult
 object, using the names to create a message.
 }
 \examples{
-vec <- c(a = T, b = F)
+vec <- c(a = TRUE, b = FALSE)
 # test fails, and message includes "b" as the reason for failing
-res <- named_logical_vector_to_check_result(vec, 'A test!')
+res <- named_logical_vector_to_check_result(vec, "A test!")
 print(res)
 #> failed check
 #>
