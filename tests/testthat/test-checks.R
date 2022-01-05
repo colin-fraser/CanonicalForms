@@ -263,3 +263,11 @@ test_that("check between", {
   cb4 <- check_between(a = c(1, 4), b = c(3, 7), .strict_lower = TRUE, .strict_upper = TRUE)
   expect_fail(cb4(df))
 })
+
+test_that("check factor levels", {
+  df <- data.frame(a = as.factor(month.abb))
+  df2 <- data.frame(a = month.abb)
+  check <- check_factor_levels(a = month.abb)
+  expect_pass(check(df))
+  expect_fail(check(df2))
+})

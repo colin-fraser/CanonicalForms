@@ -334,6 +334,10 @@ check_between <- function(..., .strict_lower = FALSE, .strict_upper = FALSE) {
   }
 }
 
+check_factor_levels <- function(...) {
+
+}
+
 check_comparison <- function(..., comparison) {
   comp_fn <- get_comparison_operator_from_name(comparison)
   violation_descriptor <- switch(comparison,
