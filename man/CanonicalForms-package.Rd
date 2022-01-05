@@ -4,7 +4,7 @@
 \name{CanonicalForms-package}
 \alias{CanonicalForms}
 \alias{CanonicalForms-package}
-\title{CanonicalForms: Check that datasets are canonical.}
+\title{CanonicalForms: Check that datasets are canonical}
 \description{
 Easily specify a "Canonical Form" for a dataset. A CanonicalForm object is a simple and lightweight container for properties and data validation checks that can be applied to a dataset. This package is designed to be minimally invasive to existing workflows, so that data validation checks can be applied with just one or two simple function calls that fit seamlessly with existing data processing steps.
 }

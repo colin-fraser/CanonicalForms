@@ -24,7 +24,7 @@ which different known values specified for each column.
 
 x <- data.frame(a = 1:2, b = 3:4)
 comparison <- function(e1, e2) any(e1 == e2)
-#' # returns c(a = TRUE, b = FALSE)
-apply_comparisons_from_named_list(x, comparison, list(a = 1, b = 1))
+# returns c(a = TRUE, b = FALSE)
+CanonicalForms:::apply_comparisons_from_named_list(x, comparison, list(a = 1, b = 1))
 }
 \keyword{internal}

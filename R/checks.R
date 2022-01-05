@@ -180,7 +180,7 @@ canonical_col_classes <- function(cf = NULL) {
 }
 
 compare_vecs <- function(canonical, given) {
-  max_diffs <- if (is_testing()) Inf else 10
+  max_diffs <- if (testthat::is_testing()) Inf else 10
   msg <- waldo::compare(canonical, given,
     x_arg = "canonical", y_arg = "given",
     max_diffs = max_diffs
@@ -407,8 +407,8 @@ check_comparison <- function(..., comparison) {
 #'
 #' x <- data.frame(a = 1:2, b = 3:4)
 #' comparison <- function(e1, e2) any(e1 == e2)
-#' #' # returns c(a = TRUE, b = FALSE)
-#' apply_comparisons_from_named_list(x, comparison, list(a = 1, b = 1))
+#' # returns c(a = TRUE, b = FALSE)
+#' CanonicalForms:::apply_comparisons_from_named_list(x, comparison, list(a = 1, b = 1))
 apply_comparisons_from_named_list <- function(x, comparison, compare_to) {
   purrr::imap_lgl(compare_to, ~ all(comparison(x[.y], .x), na.rm = TRUE))
 }
