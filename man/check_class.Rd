@@ -4,6 +4,7 @@
 \alias{check_class}
 \alias{check_col_names}
 \alias{check_col_classes}
+\alias{default_checks}
 \title{Built-in checks}
 \usage{
 check_class(x)
@@ -11,6 +12,8 @@ check_class(x)
 check_col_names(x)
 
 check_col_classes(x)
+
+default_checks()
 }
 \arguments{
 \item{x}{a dataframe to check}
@@ -23,5 +26,7 @@ These checks are built-in
 \item \code{check_col_names}: check that the column names match the Canonical Form
 
 \item \code{check_col_classes}: check that the classes match the Canonical Form
+
+\item \code{default_checks}: returns a list of the default checks.
 }}
 

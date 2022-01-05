@@ -100,15 +100,6 @@ run_in_cf_env <- function(cf, f, ...) {
 }
 
 
-determine_env <- function(cf) {
-  if (is.null(cf)) {
-    env <- caller_env()
-  } else {
-    env <- cf$check_env
-  }
-  env
-}
-
 
 #' Add checks or delete check
 #'
@@ -188,8 +179,6 @@ canonical_col_classes <- function(cf = NULL) {
   get_property(".col_classes", cf)
 }
 
-
-
 compare_vecs <- function(canonical, given) {
   msg <- waldo::compare(canonical, given, x_arg = "canonical", y_arg = "given")
   result <- length(msg) == 0
@@ -214,6 +203,7 @@ check_col_classes <- function(x) {
   compare_vecs(canonical_col_classes(), classes(x))
 }
 
+#' @describeIn check_class returns a list of the default checks.
 default_checks <- function() {
   list(
     check_class = check_class,
@@ -222,7 +212,27 @@ default_checks <- function() {
   )
 }
 
-logical_vector_to_check_result <- function(vec, header) {
+#' Create a CheckResult from a named logical vector
+#'
+#' This takes a named logical vector and turns it into a CheckResult
+#' object, using the names to create a message.
+#'
+#' @param vec a named logical vector
+#' @param header the header for the message that will be created.
+#'
+#' @return a CheckResult object
+#'
+#' @examples
+#' vec <- c(a = T, b = F)
+#' # test fails, and message includes "b" as the reason for failing
+#' res <- named_logical_vector_to_check_result(vec, "A test!")
+#' print(res)
+#' #> failed check
+#' #>
+#' #> Additional info:
+#' #>   A test!
+#' #>   x b
+named_logical_vector_to_check_result <- function(vec, header) {
   test_passed <- all(vec)
   msg <- ""
   if (!test_passed) {
@@ -244,7 +254,7 @@ logical_vector_to_check_result <- function(vec, header) {
 check_no_nas <- function(cols) {
   function(x) {
     result <- apply(x[cols], 2, function(y) !anyNA(y))
-    logical_vector_to_check_result(result, "Unexpected NAs in the following column(s):")
+    named_logical_vector_to_check_result(result, "Unexpected NAs in the following column(s):")
   }
 }
 
@@ -266,11 +276,11 @@ check_no_nas <- function(cols) {
 #' check_na2(df) # passes
 #'
 #' check_gt <- check_greater_than(a = 0, b = 3)
-#' check_gt(df)  # passes
-#' check_gt2 = check_greater_than(a = 1, b = 4, .strict = FALSE)
-#' check_gt2(df)  # passes (because .strict=FALSE)
+#' check_gt(df) # passes
+#' check_gt2 <- check_greater_than(a = 1, b = 4, .strict = FALSE)
+#' check_gt2(df) # passes (because .strict=FALSE)
 #' check_gt3 <- check_greater_than(a = 1, b = 1, .strict = TRUE)
-#' check_gt3(df)  # fails
+#' check_gt3(df) # fails
 check_greater_than <- function(..., .strict = TRUE) {
   if (.strict) {
     comparison <- ">"
@@ -287,6 +297,42 @@ check_less_than <- function(..., .strict = TRUE) {
   check_comparison(..., comparison = comparison)
 }
 
+dots_to_bounds <- function(...) {
+  args <- list(...)
+  lower <- sapply(args, function(x) x[1], USE.NAMES = TRUE)
+  upper <- sapply(args, function(x) x[2], USE.NAMES = TRUE)
+  list(lower = lower, upper = upper)
+}
+
+#' Check that values are within a set of bounds
+#'
+#' @param ... named arguments where each name is a column, and each value is a length-2 numeric
+#'   vector of the form c(lower_bound, upper_bound)
+#' @param .strict_upper should the upper bound be strict?
+#' @param .strict_lower should the lower bound be strict?
+#'
+#' @return a CheckResult object
+#' @export
+#'
+#' @examples
+#' df <- data.frame(a = c(1, 2, 3, NA), b = c(4, 5, 6, 7))
+#' cb1 <- check_between(a = c(1, 4), b = c(3, 7))
+#' cb1(df) # passes
+#' cb2 <- check_between(a = c(1, 4), b = c(3, 7), .strict_lower = TRUE)
+#' cb2(df) # fails
+#' cb3 <- check_between(a = c(1, 4), b = c(3, 7), .strict_upper = TRUE)
+#' cb3(df) # fails
+#' cb4 <- check_between(a = c(1, 4), b = c(3, 7), .strict_lower = TRUE, .strict_upper = TRUE)
+#' cb4(df) # fails
+check_between <- function(..., .strict_lower = FALSE, .strict_upper = FALSE) {
+  bounds <- dots_to_bounds(...)
+  lower <- do.call(check_greater_than, args = c(bounds$lower, list(.strict = .strict_lower)))
+  upper <- do.call(check_less_than, args = c(bounds$upper, list(.strict = .strict_upper)))
+  function(x) {
+    conjunction(lower(x), upper(x))
+  }
+}
+
 check_comparison <- function(..., comparison) {
   comp_fn <- get_comparison_operator_from_name(comparison)
   violation_descriptor <- switch(comparison,
@@ -299,7 +345,7 @@ check_comparison <- function(..., comparison) {
   msg <- paste("Values found", violation_descriptor, "in the following column(s):")
   function(x) {
     result <- apply_comparisons_from_named_list(x, comp_fn, list(...))
-    logical_vector_to_check_result(result, msg)
+    named_logical_vector_to_check_result(result, msg)
   }
 }
 

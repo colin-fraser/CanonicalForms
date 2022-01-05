@@ -97,6 +97,6 @@ format_failed_tests <- function(result_list) {
 
 conjunction <- function(r1, r2) {
   result <- as.logical(r1) & as.logical(r2)
-  msg <- paste(check_info(r1), check_info(r2), sep = '\n')
+  msg <- paste(check_info(r1), check_info(r2), sep = "\n")
   check_result(result, msg)
 }
