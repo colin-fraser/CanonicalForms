@@ -19,6 +19,17 @@ chickwts_cf <- function() {
   )
 }
 
+expect_pass <- function(check_result) {
+  expect_true(as.logical(check_result))
+}
+
+expect_fail <- function(check_result, snapshot = TRUE) {
+  expect_false(as.logical(check_result))
+  if (snapshot) {
+    expect_snapshot(check_result)
+  }
+}
+
 test_that("get_from_caller_env_recursive works", {
   e1 <- rlang::env(a = "a")
   get_a <- function() {
@@ -31,12 +42,6 @@ test_that("get_from_caller_env_recursive works", {
   expect_equal(exec(get_a, .env = e1), "a")
   expect_equal(exec(get_a_2, .env = e1), "a")
   expect_error(get_a())
-})
-
-test_that("determine_env correctly determines an environment", {
-  cf <- dummy_cf()
-  expect_identical(determine_env(NULL), rlang::current_env())
-  expect_identical(determine_env(cf), cf$check_env)
 })
 
 test_that("getting properties from a CanonicalForm", {
@@ -234,11 +239,27 @@ test_that("less than", {
 
 test_that("logical_vector_to_test_result", {
   test_fn <- function(vec, msg = "hello") {
-    cr <- logical_vector_to_check_result(vec, msg)
+    cr <- named_logical_vector_to_check_result(vec, msg)
     as.logical(cr)
   }
   expect_true(test_fn(c(a = T)))
   expect_false(test_fn(c(a = F)))
   expect_true(test_fn(c(a = T, b = T)))
   expect_false(test_fn(c(a = T, b = F)))
+})
+
+test_that("dots to bounds", {
+  expect_equal(dots_to_bounds(a = c(1, 2), b = c(3, 4)), list(lower = c(a = 1, b = 3), upper = c(a = 2, b = 4)))
+})
+
+test_that("check between", {
+  df <- data.frame(a = c(1, 2, 3, NA), b = c(4, 5, 6, 7))
+  cb1 <- check_between(a = c(1, 4), b = c(3, 7))
+  expect_pass(cb1(df))
+  cb2 <- check_between(a = c(1, 4), b = c(3, 7), .strict_lower = TRUE)
+  expect_fail(cb2(df))
+  cb3 <- check_between(a = c(1, 4), b = c(3, 7), .strict_upper = TRUE)
+  expect_fail(cb3(df))
+  cb4 <- check_between(a = c(1, 4), b = c(3, 7), .strict_lower = TRUE, .strict_upper = TRUE)
+  expect_fail(cb4(df))
 })

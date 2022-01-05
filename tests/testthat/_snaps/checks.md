@@ -79,3 +79,39 @@
       Values found above maximum in the following column(s):
       x a
 
+# check between
+
+    Code
+      check_result
+    Output
+      failed check
+      
+      Additional info:
+      Values found below minimum in the following column(s):
+      x a
+
+---
+
+    Code
+      check_result
+    Output
+      failed check
+      
+      Additional info:
+      
+      Values found above maximum in the following column(s):
+      x b
+
+---
+
+    Code
+      check_result
+    Output
+      failed check
+      
+      Additional info:
+      Values found below minimum in the following column(s):
+      x a
+      Values found above maximum in the following column(s):
+      x b
+
