@@ -1,4 +1,4 @@
-# CanonicalForms (development version)
+# CanonicalForms 0.2.0
 
 # CanonicalForms 0.1.0
 
