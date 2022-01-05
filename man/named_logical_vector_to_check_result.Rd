@@ -21,7 +21,7 @@ object, using the names to create a message.
 \examples{
 vec <- c(a = TRUE, b = FALSE)
 # test fails, and message includes "b" as the reason for failing
-res <- named_logical_vector_to_check_result(vec, "A test!")
+res <- CanonicalForms:::named_logical_vector_to_check_result(vec, "A test!")
 print(res)
 #> failed check
 #>
@@ -29,3 +29,4 @@ print(res)
 #>   A test!
 #>   x b
 }
+\keyword{internal}

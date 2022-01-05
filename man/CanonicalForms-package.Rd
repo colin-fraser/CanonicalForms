@@ -4,7 +4,7 @@
 \name{CanonicalForms-package}
 \alias{CanonicalForms}
 \alias{CanonicalForms-package}
-\title{CanonicalForms: What the Package Does (Title Case)}
+\title{CanonicalForms:}
 \description{
 More about what it does (maybe more than one line) Use four spaces when indenting paragraphs within the Description.
 }
