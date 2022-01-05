@@ -123,18 +123,19 @@
       failed check
       
       Additional info:
-           canonical | given               
-       [1] "Apr"     | "Apr" [1]           
-       [2] "Aug"     - "Feb" [2]           
-       [3] "Dec"     - "Jan" [3]           
-       [4] "Feb"     - "Mar" [4]           
-       [5] "Jan"     - "May" [5]           
-       [6] "Jul"     -                     
-       [7] "Jun"     -                     
-       [8] "Mar"     -                     
-       [9] "May"     -                     
-      [10] "Nov"     -                     
-       ... ...         ...   and 2 more ...
+           canonical | given    
+       [1] "Apr"     | "Apr" [1]
+       [2] "Aug"     - "Feb" [2]
+       [3] "Dec"     - "Jan" [3]
+       [4] "Feb"     - "Mar" [4]
+       [5] "Jan"     - "May" [5]
+       [6] "Jul"     -          
+       [7] "Jun"     -          
+       [8] "Mar"     -          
+       [9] "May"     -          
+      [10] "Nov"     -          
+      [11] "Oct"     -          
+      [12] "Sep"     -          
 
 # check factor levels
 

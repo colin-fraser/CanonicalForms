@@ -180,7 +180,11 @@ canonical_col_classes <- function(cf = NULL) {
 }
 
 compare_vecs <- function(canonical, given) {
-  msg <- waldo::compare(canonical, given, x_arg = "canonical", y_arg = "given")
+  max_diffs <- if (is_testing()) Inf else 10
+  msg <- waldo::compare(canonical, given,
+    x_arg = "canonical", y_arg = "given",
+    max_diffs = max_diffs
+  )
   result <- length(msg) == 0
   check_result(result, msg)
 }
