@@ -1,6 +1,6 @@
 Package: CanonicalForms
 Type: Package
-Title: Check that datasets are canonical.
+Title: Check that datasets are canonical
 Version: 0.2.0
 Authors@R:
    person("Colin", "Fraser", , "colin.r.fraser@gmail.com", role = c("aut", "cre"))
