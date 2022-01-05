@@ -264,10 +264,25 @@ test_that("check between", {
   expect_fail(cb4(df))
 })
 
+test_that("test internal factor levels checker", {
+  fct <- as.factor(month.abb)
+  expect_pass(.check_col_factor_levels(sort(month.abb), fct))
+  fct2 <- as.factor(month.abb[1:5])
+  expect_fail(.check_col_factor_levels(sort(month.abb), fct2))
+})
+
 test_that("check factor levels", {
   df <- data.frame(a = as.factor(month.abb))
   df2 <- data.frame(a = month.abb)
-  check <- check_factor_levels(a = month.abb)
+  df3 <- data.frame(a = as.factor(month.abb[1:11]))
+  check <- check_factor_levels(a = sort(month.abb))
   expect_pass(check(df))
   expect_fail(check(df2))
+  expect_fail(check(df3))
+
+  cf <- extract_canonical_form(df)
+  cf <- add_checks(cf, check_factor_levels = check)
+  expect_snapshot(is_canonical(df, cf))
+  expect_snapshot(is_canonical(df2, cf))
+  expect_snapshot(is_canonical(df3, cf))
 })

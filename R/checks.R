@@ -334,8 +334,40 @@ check_between <- function(..., .strict_lower = FALSE, .strict_upper = FALSE) {
   }
 }
 
+#' Check factor levels
+#'
+#' @param ... named list where each name is a column name
+#'   and each value is the expected factor vector
+#'
+#' @return a check result which passes if each column's levels
+#'   are equal to the given canonical levels
+#' @export
+#'
+#' @examples
+#' df <- data.frame(
+#'   a = as.factor(c("a", "b", "c", "c")),
+#'   b = as.factor(c("a", "b", "c", "d"))
+#' )
+#' passer <- check_factor_levels(a = c("a", "b", "c"), b = c("a", "b", "c", "d"))
+#' failer <- check_factor_levels(a = c("a", "b", "c"), b = c("d", "e", "f", "g"))
+#' passer(df)
+#' failer(df)
 check_factor_levels <- function(...) {
+  stop_if_dots_not_named(...)
+  args <- list(...)
+  function(x) {
+    purrr::reduce(
+      purrr::imap(args, ~ .check_col_factor_levels(.x, x[[.y]])),
+      conjunction
+    )
+  }
+}
 
+.check_col_factor_levels <- function(canonical_levels, given_factor) {
+  if (!is.factor(given_factor)) {
+    return(check_result(FALSE, "Column is not a factor variable"))
+  }
+  compare_vecs(canonical_levels, levels(given_factor))
 }
 
 check_comparison <- function(..., comparison) {
@@ -354,8 +386,27 @@ check_comparison <- function(..., comparison) {
   }
 }
 
-apply_comparisons_from_named_list <- function(x, comparison, args) {
-  purrr::imap_lgl(args, ~ all(comparison(x[.y], .x), na.rm = TRUE))
+#' Apply comparisons from a named list
+#'
+#' Apply a comparison function to multiple columns of a data frame,
+#' which different known values specified for each column.
+#'
+#' @param x data.frame or similar
+#' @param comparison a comparison function
+#' @param compare_to a named list of the form list(colname = known_values).
+#'
+#'
+#' @return a named logical vector
+#' @keywords internal
+#'
+#' @examples
+#'
+#' x <- data.frame(a = 1:2, b = 3:4)
+#' comparison <- function(e1, e2) any(e1 == e2)
+#' #' # returns c(a = TRUE, b = FALSE)
+#' apply_comparisons_from_named_list(x, comparison, list(a = 1, b = 1))
+apply_comparisons_from_named_list <- function(x, comparison, compare_to) {
+  purrr::imap_lgl(compare_to, ~ all(comparison(x[.y], .x), na.rm = TRUE))
 }
 
 get_comparison_operator_from_name <- function(comparison) {
