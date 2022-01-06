@@ -208,12 +208,12 @@ test_that("gt test", {
   gtt3 <- check_greater_than(a = -1, .strict = FALSE)
   expect_true(as.logical(gtt3(df)))
 
-  cf <- extract_canonical_form(df) |>
+  cf <- extract_canonical_form(df) %>%
     add_checks(gt = gtt2)
 
   expect_true(is_canonical(df, cf, verbose = F))
 
-  cf <- extract_canonical_form(df) |>
+  cf <- extract_canonical_form(df) %>%
     add_checks(gt = gtt)
 
   expect_false(is_canonical(df, cf, verbose = F))
@@ -285,4 +285,11 @@ test_that("check factor levels", {
   expect_snapshot(is_canonical(df, cf))
   expect_snapshot(is_canonical(df2, cf))
   expect_snapshot(is_canonical(df3, cf))
+})
+
+test_that("apply function to cols", {
+  x <- data.frame(a = c(1, 2), b = c(3, 4))
+  args <- list(a = 3, b = 8)
+  f <- function(x, y) sum(x) == y
+  expect_equal(apply_function_to_cols(x, f, args), list(a = TRUE, b = FALSE))
 })

@@ -31,6 +31,7 @@ Imports:
     datasets,
     waldo,
     crayon,
-    purrr
+    purrr,
+    magrittr
 URL: https://github.com/colin-fraser/CanonicalForms
 BugReports: https://github.com/colin-fraser/CanonicalForms/issues

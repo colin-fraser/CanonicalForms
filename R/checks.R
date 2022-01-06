@@ -248,6 +248,21 @@ named_logical_vector_to_check_result <- function(vec, header) {
   check_result(test_passed, msg)
 }
 
+#' Internal: apply a function to columns of a dataset,
+#'
+#' With different arguments to each column. This is used by many of the
+#' check functions.
+#'
+#' @param .x a data.frame-like object
+#' @param .f a function, probably with arguments representing (actual, expected)
+#' @param function_args a named list, where the names are columns of .x
+#'   and the values are arguments to the function
+#'
+#' @return a named list with the same names as function_args
+apply_function_to_cols <- function(x, f, function_args) {
+  purrr::imap(function_args, ~ f(x[[.y]], .x))
+}
+
 #' Check makers
 #'
 #' Create checks to add to Canonical Forms. Each of these functions returns a function which takes
