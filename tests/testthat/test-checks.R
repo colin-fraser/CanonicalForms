@@ -20,11 +20,11 @@ chickwts_cf <- function() {
 }
 
 expect_pass <- function(check_result) {
-  expect_true(as.logical(check_result))
+  expect_true(check_result)
 }
 
 expect_fail <- function(check_result, snapshot = TRUE) {
-  expect_false(as.logical(check_result))
+  expect_false(check_result)
   if (snapshot) {
     expect_snapshot(check_result)
   }
@@ -111,10 +111,10 @@ test_that("compare_vecs works", {
   v1 <- c("a", "b")
   v2 <- c("a")
   r <- compare_vecs(v1, v2)
-  expect_false(as.logical(r))
+  expect_false(r)
   expect_true(startsWith(format(r), "failed"))
   r <- compare_vecs(v1, v1)
-  expect_true(as.logical(r))
+  expect_true(r)
   expect_true(startsWith(format(r), "passed"))
 })
 
@@ -124,9 +124,9 @@ test_that("built-in checks work", {
   class_check_passing <- run_check(check_class, cf, x = df)
   cols_check_passing <- run_check(check_col_names, cf, x = df)
   classes_check_passing <- run_check(check_col_classes, cf, x = df)
-  expect_true(as.logical(class_check_passing))
-  expect_true(as.logical(cols_check_passing))
-  expect_true(as.logical(classes_check_passing))
+  expect_true(class_check_passing)
+  expect_true(cols_check_passing)
+  expect_true(classes_check_passing)
 
   df2 <- tibble::as_tibble(df)
   names(df2) <- c("wt", "feed")
@@ -134,9 +134,9 @@ test_that("built-in checks work", {
   class_check_failing <- run_check(check_class, cf, x = df2)
   cols_check_failing <- run_check(check_col_names, cf, x = df2)
   classes_check_failing <- run_check(check_col_classes, cf, x = df2)
-  expect_false(as.logical(class_check_failing))
-  expect_false(as.logical(cols_check_failing))
-  expect_false(as.logical(classes_check_failing))
+  expect_false(class_check_failing)
+  expect_false(cols_check_failing)
+  expect_false(classes_check_failing)
 
   # call checks by name
   dummy_check <- function() TRUE
@@ -147,8 +147,8 @@ test_that("built-in checks work", {
 test_that("result list representations", {
   r1 <- check_result(T, "hello")
   r2 <- check_result(F, "goodbye")
-  rl <- list(r1, r2)
-  expect_identical(result_list_to_logical(rl), c(T, F))
+  rl <- result_list(list(r1, r2))
+  expect_identical(c(r1, r2), c(T, F))
   expect_identical(result_list_to_string(rl), "PF")
 })
 
@@ -202,7 +202,7 @@ test_that("no nas test", {
 test_that("gt test", {
   df <- data.frame(a = c(-1, 0, NA), b = c(1, 1, NA))
   gtt <- check_greater_than(a = 0)
-  expect_false(as.logical(gtt(df)))
+  expect_false(all_pass(gtt(df)))
   gtt2 <- check_greater_than(a = -2)
   expect_true(as.logical(gtt2(df)))
   gtt3 <- check_greater_than(a = -1, .strict = FALSE)
@@ -223,14 +223,14 @@ test_that("gt test", {
 
 test_that("less than", {
   df <- data.frame(a = c(-1, 0, NA), b = c(1, 1, NA))
-  lt1 <- check_less_than(a = 1)
-  expect_true(as.logical(lt1(df)))
+  lt1 <- check_less_than(a = 1)(df)
+  expect_true(all_pass(lt1))
   lt2 <- check_less_than(a = 0, .strict = FALSE)
-  expect_true(as.logical(lt2(df)))
+  expect_true(lt2(df))
   lt3 <- check_less_than(a = 0, .strict = TRUE)
-  expect_false(as.logical(lt3(df)))
+  expect_false(lt3(df))
   lt4 <- check_less_than(a = -2)
-  expect_false(as.logical(lt4(df)))
+  expect_false(lt4(df))
   expect_snapshot(lt1(df))
   expect_snapshot(lt2(df))
   expect_snapshot(lt3(df))
@@ -276,7 +276,7 @@ test_that("check factor levels", {
   df2 <- data.frame(a = month.abb)
   df3 <- data.frame(a = as.factor(month.abb[1:11]))
   check <- check_factor_levels(a = sort(month.abb))
-  expect_pass(check(df))
+  expect_true(check(df))
   expect_fail(check(df2))
   expect_fail(check(df3))
 

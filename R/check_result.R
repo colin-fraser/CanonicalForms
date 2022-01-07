@@ -3,17 +3,25 @@ XMARK <- "x"
 ALL_PASSED <- "\U1F60E"
 
 
+#' Create a CheckResult object
+#'
+#' @param result logical value indicating if the result passes
+#' @param msg character indicating the failure message. If the result passed,
+#'   this is converted to ""
+#'
+#' @noRd
 check_result <- function(result, msg) {
   stopifnot(
     "result must be logical" = class(result) == "logical",
     "result must be of length 1" = length(result) == 1
   )
-  structure(list(result = result, msg = msg), class = "CheckResult")
+  if (result) msg <- ""
+  structure(result, class = "CheckResult", msg = msg)
 }
 
 check_descriptor <- function(r) {
   stopifnot("r must be of type `check_result`" = class(r) == "CheckResult")
-  if (as.logical(r)) {
+  if (r) {
     return("passed")
   } else {
     return("failed")
@@ -23,7 +31,7 @@ check_descriptor <- function(r) {
 #' @export
 format.CheckResult <- function(x, ...) {
   out <- paste(check_descriptor(x), "check")
-  if (!as.logical(x)) {
+  if (!x) {
     out <- paste(out, "\nAdditional info:", check_info(x), sep = "\n")
   }
   out
@@ -34,13 +42,24 @@ print.CheckResult <- function(x, ...) {
   cat(format(x))
 }
 
-#' @export
-as.logical.CheckResult <- function(x, ...) {
-  x$result
-}
+
 
 check_info <- function(r) {
-  r$msg
+  attributes(r)$msg
+}
+
+result_list <- function(list_of_results, scope = c('column', 'global')) {
+  scope = match.arg(scope)
+  structure(list_of_results, class = 'ResultList', scope = scope)
+}
+
+result_list_to_logical <- function(x) {
+  names <- names(x)
+  setNames(as.logical(x), names)
+}
+
+all_pass <- function(result_list) {
+  all(result_list_to_logical(result_list))
 }
 
 result_list_to_logical <- function(result_list) {
@@ -48,7 +67,11 @@ result_list_to_logical <- function(result_list) {
 }
 
 result_list_to_string <- function(result_list, pass = "P", fail = "F") {
-  paste0(vapply(result_list, function(x) if (as.logical(x)) pass else fail, character(1)), collapse = "")
+  paste0(ifelse(as.logical(result_list), pass, fail), collapse = '')
+}
+
+result_list_scope <- function(result_list) {
+  attributes(result_list)$scope
 }
 
 result_list_summary <- function(result_list) {
@@ -96,7 +119,7 @@ format_failed_tests <- function(result_list) {
 }
 
 conjunction <- function(r1, r2) {
-  result <- as.logical(r1) & as.logical(r2)
+  result <- r1 & r2
   msg <- paste(check_info(r1), check_info(r2), sep = "\n")
   check_result(result, msg)
 }

@@ -4,7 +4,7 @@
 \alias{check_factor_levels}
 \title{Check factor levels}
 \usage{
-check_factor_levels(...)
+check_factor_levels(..., .order_matters = TRUE)
 }
 \arguments{
 \item{...}{named list where each name is a column name
@@ -26,4 +26,12 @@ passer <- check_factor_levels(a = c("a", "b", "c"), b = c("a", "b", "c", "d"))
 failer <- check_factor_levels(a = c("a", "b", "c"), b = c("d", "e", "f", "g"))
 passer(df)
 failer(df)
+passer2 <- check_factor_levels(a = c('b', 'c', 'a'),
+                               b = c('b', 'c', 'a', 'd'),
+                               .order_matters = FALSE)
+failer2 <- check_factor_levels(a = c('b', 'c', 'a'),
+                               b = c('b', 'c', 'a', 'd'),
+                               .order_matters = TRUE)
+passer2(df)
+failer2(df)
 }

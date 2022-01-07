@@ -179,8 +179,13 @@ canonical_col_classes <- function(cf = NULL) {
   get_property(".col_classes", cf)
 }
 
-compare_vecs <- function(canonical, given) {
+compare_vecs <- function(canonical, given, order_matters = TRUE) {
   max_diffs <- if (testthat::is_testing()) Inf else 10
+  stopifnot("`compare_vecs` should only take a vector" = is.vector(given))
+  if (!order_matters) {
+    canonical <- sort(canonical)
+    give <- sort(given)
+  }
   msg <- waldo::compare(canonical, given,
     x_arg = "canonical", y_arg = "given",
     max_diffs = max_diffs
@@ -259,8 +264,14 @@ named_logical_vector_to_check_result <- function(vec, header) {
 #'   and the values are arguments to the function
 #'
 #' @return a named list with the same names as function_args
-apply_function_to_cols <- function(x, f, function_args) {
-  purrr::imap(function_args, ~ f(x[[.y]], .x))
+apply_function_to_cols <- function(x, f, function_args, agg = c('all', 'any', 'none')) {
+  agg <- match.arg(agg)
+  agg <- switch(agg,
+    all = all,
+    any = any,
+    none = identity
+  )
+  purrr::imap(function_args, ~ agg(f(x[[.y]], .x), na.rm = TRUE))
 }
 
 #' Check makers
@@ -371,39 +382,55 @@ check_between <- function(..., .strict_lower = FALSE, .strict_upper = FALSE) {
 #' failer <- check_factor_levels(a = c("a", "b", "c"), b = c("d", "e", "f", "g"))
 #' passer(df)
 #' failer(df)
-check_factor_levels <- function(...) {
+#' passer2 <- check_factor_levels(a = c('b', 'c', 'a'),
+#'                                b = c('b', 'c', 'a', 'd'),
+#'                                .order_matters = FALSE)
+#' failer2 <- check_factor_levels(a = c('b', 'c', 'a'),
+#'                                b = c('b', 'c', 'a', 'd'),
+#'                                .order_matters = TRUE)
+#' passer2(df)
+#' failer2(df)
+check_factor_levels <- function(..., .order_matters = TRUE) {
   stop_if_dots_not_named(...)
   args <- list(...)
+
   function(x) {
-    purrr::reduce(
-      purrr::imap(args, ~ .check_col_factor_levels(.x, x[[.y]])),
-      conjunction
-    )
+    apply_fn_to_x(.check_col_factor_levels, x, args, .order_matters)
   }
 }
 
-.check_col_factor_levels <- function(canonical_levels, given_factor) {
+.check_col_factor_levels <- function(given_factor, canonical_levels, .order_matters) {
   if (!is.factor(given_factor)) {
     return(check_result(FALSE, "Column is not a factor variable"))
   }
-  compare_vecs(canonical_levels, levels(given_factor))
+  compare_vecs(canonical_levels, levels(given_factor), order_matters = .order_matters)
 }
 
 check_comparison <- function(..., comparison) {
-  comp_fn <- get_comparison_operator_from_name(comparison)
-  violation_descriptor <- switch(comparison,
-    ">" = "below minimum",
-    ">=" = "below minimum",
-    "<" = "above maximum",
-    "<=" = "above maximum",
-    stop("unknown")
-  )
-  msg <- paste("Values found", violation_descriptor, "in the following column(s):")
+  comp_fn <- col_check_compare(comparison)
   function(x) {
-    result <- apply_comparisons_from_named_list(x, comp_fn, list(...))
-    named_logical_vector_to_check_result(result, msg)
+    apply_fn_to_x(comp_fn, x, list(...))
   }
 }
+
+
+col_check_compare <- function(comparison, na.rm = TRUE) {
+  compare <- function(e1, e2) do.call(comparison, list(e1, e2))
+  violation_descriptor <- switch(comparison,
+                                 ">" = "below minimum",
+                                 ">=" = "below minimum",
+                                 "<" = "above maximum",
+                                 "<=" = "above maximum",
+                                 stop(sprintf("unknown operator '%s'", comparison))
+  )
+  function(given, canonical) {
+    result <- all(compare(given, canonical), na.rm = na.rm)
+    msg <- sprintf("Value(s) found %s of %s", violation_descriptor, canonical)
+    check_result(result, msg)
+  }
+}
+
+
 
 #' Apply comparisons from a named list
 #'
@@ -428,6 +455,10 @@ apply_comparisons_from_named_list <- function(x, comparison, compare_to) {
   purrr::imap_lgl(compare_to, ~ all(comparison(x[.y], .x), na.rm = TRUE))
 }
 
-get_comparison_operator_from_name <- function(comparison) {
-  function(e1, e2) do.call(comparison, list(e1, e2))
+# fn should take arguments "given, canonical"
+apply_fn_to_x <- function(fn, x, args, ...) {
+  res <- sapply(X = names(args),
+         FUN = function(i) fn(x[[i]], args[[i]], ...),
+         USE.NAMES = TRUE, simplify = FALSE)
+  result_list(res, 'column')
 }
