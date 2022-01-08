@@ -130,10 +130,6 @@ print.CanonicalForm <- function(x, ...) {
   cat(format(x))
 }
 
-get_check_env <- function(cf) {
-  cf$check_env
-}
-
 get_checks <- function(cf) {
   cf$checks
 }
