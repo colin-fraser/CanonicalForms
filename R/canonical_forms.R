@@ -4,8 +4,10 @@
 #' @param col_names a vector of column names
 #' @param col_classes a vector of column classes
 #' @param transformers a list of canonicalization functions
-#' @param checks a list of functions that will be used to check
+#' @param global_checks a list of functions that will be used to check
 #'   if a dataset is canonical
+#' @param column_checks a list of checks
+#' @param uncategorized_checks a list of checks
 #' @param add_default_checks should the default checks be added?
 #'
 #' @return an object of class CanonicalForm
@@ -14,28 +16,32 @@
 canonical_form <- function(object_class,
                            col_names,
                            col_classes,
-                           transformers = list(),
                            checks = list(),
+                           transformers = list(),
                            add_default_checks = TRUE) {
-  check_env <- env(
-    .object_class = object_class,
-    .col_names = col_names,
-    .col_classes = col_classes
-  )
+  env <- env()
+  env$global_properties <- list(object_class = object_class,
+                                     col_names = col_names,
+                                     col_classes = col_classes)
+
+  env$check_suite <- check_suite(checks)
+  env$transformers <- transformers
 
   out <- structure(
-    list(
-      check_env = check_env,
-      transformers = transformers,
-      checks = checks
-    ),
+    env,
     class = "CanonicalForm"
   )
   if (add_default_checks) {
-    out$checks <- c(default_checks(), out$checks)
+    TRUE
+    # out$checks <- c(default_checks(), out$checks)
   }
   out
 }
+
+is_canonical_form <- function(x) {
+  class(x) == "CanonicalForm"
+}
+
 
 #' Create a CanonicalForm from a data frame
 #'
@@ -102,13 +108,13 @@ check_canonical <- function(x, form, behavior = c("warn", "stop", "inform")) {
 #'
 format.CanonicalForm <- function(x, ...) {
   coltypes <- paste(
-    paste0("  ", canonical_col_names(x)),
-    canonical_col_classes(x),
+    paste0("  ", get_canonical_col_names(x)),
+    get_canonical_col_classes(x),
     sep = ": ",
     collapse = "\n"
   )
   glue::glue(
-    "Canonical Form for object of class: {dput_to_str(canonical_object_class(x))}
+    "Canonical Form for object of class: {dput_to_str(get_canonical_object_class(x))}
               {coltypes}"
   )
 }
@@ -130,10 +136,6 @@ get_check_env <- function(cf) {
 
 get_checks <- function(cf) {
   cf$checks
-}
-
-get_properties <- function(cf) {
-  unlist(as.list(cf$check_env, all.names = TRUE))
 }
 
 #' @export
@@ -220,6 +222,50 @@ n_checks <- function(cf) {
 
 
 
+
+find_cf_in_call_stack <- function(i = 1, recursion_limit = 100) {
+  if ((i-1)/2 >= recursion_limit) {
+    stop("Recursion limit reached")
+  }
+  envir <- parent.frame(i)
+  if (is_canonical_form(envir)) {
+    return(envir)
+  } else {
+    find_cf_in_call_stack(i + 2)
+  }
+}
+
+get_global_properties <- function(cf = NULL) {
+  if (is.null(cf)) {
+    cf <- find_cf_in_call_stack()
+  } else {
+    stopifnot(is_canonical_form(cf))
+  }
+  cf$global_properties
+}
+
+get_global_property <- function(nm, cf = NULL) {
+  gp <- get_global_properties(cf)
+  gp[[nm]]
+}
+
+get_canonical_col_names <- function(cf = NULL) {
+  get_global_property("col_names", cf)
+}
+
+get_canonical_col_classes <- function(cf = NULL) {
+  get_global_property("col_classes", cf)
+}
+
+get_canonical_object_class <- function(cf = NULL) {
+  get_global_property("object_class", cf)
+}
+
+execute_fn_in_cf <- function(fn, cf, args = list()) {
+  do.call(what = fn, args = args, envir = cf)
+}
+
 transform_canonical <- function(x, cf, transformer, handle = c("warn", "stop", "none")) {
   return(FALSE)
 }
+

@@ -1,57 +1,49 @@
-test_that("formatter works", {
-  cf <- extract_canonical_form(cars)
-  expected <- "Canonical Form for object of class: \"data.frame\"\n  speed: numeric\n  dist: numeric"
-  expect_equal(format(cf), expected)
-  expect_output(print(cf), expected)
+dummy_cf <- function() {
+  canonical_form('class', c('a', 'b', 'c'), c('x', 'y', 'z'), add_default_checks = FALSE)
+}
+
+test_that("creating a CanonicalForm works", {
+  cf <- canonical_form('class', c('a', 'b', 'c'), c('x', 'y', 'z'), add_default_checks = FALSE)
+  expect_s3_class(cf, 'CanonicalForm')
 })
 
-test_that("Extracting canonical forms for simple data.frame", {
-  extracted <- extract_canonical_form(cars)
-  expect_equal(canonical_col_names(extracted), c("speed", "dist"))
-  expect_equal(canonical_col_classes(extracted), c("numeric", "numeric"))
-  expect_equal(canonical_object_class(extracted), "data.frame")
+test_that("find_cf_in_call_stack", {
+  expect_error(find_cf_in_call_stack(), 'Recursion limit')
+  cf <- dummy_cf()
+  f <- function() find_cf_in_call_stack()
+  do.call(f, list(), envir = cf)
+  g <- function() f()
+  do.call(f, list(), envir = cf)
 })
 
-test_that("Extracting canonical forms for tbl_df", {
-  extracted <- extract_canonical_form(dplyr::starwars)
-  expect_equal(canonical_col_names(extracted), c(
-    "name", "height", "mass", "hair_color", "skin_color", "eye_color",
-    "birth_year", "sex", "gender", "homeworld", "species", "films",
-    "vehicles", "starships"
-  ))
-  expect_equal(canonical_col_classes(extracted), c(
-    "character", "integer", "numeric", "character", "character",
-    "character", "numeric", "character", "character", "character",
-    "character", "list", "list", "list"
-  ))
-})
+test_that("get_global_properties", {
+  cf <- dummy_cf()
+  props <- get_global_properties(cf)
+  expected <- list(object_class = "class",
+                   col_names = c("a", "b", "c"),
+                   col_classes = c("x", "y", "z"))
+  expect_identical(props, expected)
 
-test_that("Get property works", {
-  cf <- canonical_form("a", c("b", "c"), c("d", "e"), add_default_checks = FALSE)
-  expect_error(get_property(".object_class"))
-  expect_equal(run_in_cf_env(cf, function() get_property(".object_class")), "a")
-  expect_equal(get_property(".object_class", cf), "a")
-})
+  f <- function() get_global_properties()
+  expect_error(f(), 'Recursion limit')
+  props2 <- do.call(f, list(), envir = cf)
+  expect_identical(props, expected)
+}
+)
 
-test_that("Check if dataset is canonical", {
-  cf <- extract_canonical_form(cars)
-  expect_true(is_canonical(cars, cf, verbose = FALSE))
-  expect_false(is_canonical(dplyr::rename(cars, SPEED = speed), cf, verbose = FALSE))
-  expect_false(is_canonical(tibble::as_tibble(cars), cf, verbose = FALSE))
-  expect_false(is_canonical(dplyr::mutate(cars, speed = is.character(speed)), cf, verbose = FALSE))
-})
 
-test_that("test Ops", {
-  cf1 <- extract_canonical_form(cars)
-  cf2 <- extract_canonical_form(mtcars)
-  expect_true(cf1 == cf1)
-  expect_false(cf1 == cf2)
-  expect_error(cf1 != cf2)
-})
-
-test_that("to_r_code creates executable code", {
-  cf <- extract_canonical_form(cars)
-  r_code <- to_r_code(cf)
-  cf2 <- eval(parse(text = r_code))
-  expect_true(cf == cf2)
+test_that("Canonical property getters", {
+  cf <- dummy_cf()
+  expected <- list("class", c("x", "y", "z"), c("a", "b", "c"))
+  f <- function(cf = NULL) {
+    list(
+      get_canonical_object_class(cf),
+      get_canonical_col_classes(cf),
+      get_canonical_col_names(cf)
+    )
+  }
+  expect_error(f(), 'Recursion limit')
+  expect_equal(f(cf), expected)
+  expect_equal(do.call(f, list(), envir = cf), expected)
+  expect_equal(execute_fn_in_cf(f, cf), expected)
 })
