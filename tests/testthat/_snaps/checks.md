@@ -24,18 +24,44 @@
 # gt test
 
     Code
+      check_result
+    Output
+      failed check
+      
+      Additional info:
+      x a
+        Value(s) found below minimum of 0
+
+---
+
+    Code
+      check_result
+    Output
+      failed check
+      
+      Additional info:
+      x a
+        Value(s) found below minimum of 0
+      x b
+        Value(s) found below minimum of 2
+
+---
+
+    Code
       check_canonical(df, cf)
     Warning <warning>
       CHECKS SUMMARY
       check_class............................✔
       check_col_names........................✔
       check_col_classes......................✔
-      gt.....................................x
+      column_lower_bounds....................x
       
       Additional information:
-      Failed check: gt
-      Values found below minimum in the following column(s):
+      Failed check: column_lower_bounds
       x a
+        Value(s) found below minimum of 0
+      x b
+        Value(s) found below minimum of 2
       
     Output
          a  b
@@ -65,8 +91,8 @@
       failed check
       
       Additional info:
-      Values found above maximum in the following column(s):
       x a
+        Value(s) found above maximum of 0
 
 ---
 
@@ -76,8 +102,10 @@
       failed check
       
       Additional info:
-      Values found above maximum in the following column(s):
       x a
+        Value(s) found above maximum of -2
+      x b
+        Value(s) found above maximum of 0
 
 # check between
 
@@ -87,8 +115,8 @@
       failed check
       
       Additional info:
-      Values found below minimum in the following column(s):
       x a
+        Value found outside of (1, 4]
 
 ---
 
@@ -98,9 +126,8 @@
       failed check
       
       Additional info:
-      
-      Values found above maximum in the following column(s):
       x b
+        Value found outside of [3, 7)
 
 ---
 
@@ -110,10 +137,10 @@
       failed check
       
       Additional info:
-      Values found below minimum in the following column(s):
       x a
-      Values found above maximum in the following column(s):
+        Value found outside of (1, 4)
       x b
+        Value found outside of (3, 7)
 
 # test internal factor levels checker
 
@@ -124,18 +151,18 @@
       
       Additional info:
            canonical | given    
-       [1] "Apr"     | "Apr" [1]
-       [2] "Aug"     - "Feb" [2]
-       [3] "Dec"     - "Jan" [3]
-       [4] "Feb"     - "Mar" [4]
-       [5] "Jan"     - "May" [5]
-       [6] "Jul"     -          
-       [7] "Jun"     -          
-       [8] "Mar"     -          
-       [9] "May"     -          
-      [10] "Nov"     -          
-      [11] "Oct"     -          
-      [12] "Sep"     -          
+       [1] "Jan"     - "Feb" [2]
+       [2] "Feb"     - "Jan" [3]
+       [3] "Mar"     | "Mar" [4]
+       [4] "Apr"     -          
+       [5] "May"     -          
+       [6] "Jun"     -          
+       [7] "Jul"     -          
+       [8] "Aug"     -          
+       [9] "Sep"     -          
+      [10] "Oct"     -          
+      [11] "Nov"     -          
+      [12] "Dec"     - "May" [5]
 
 # check factor levels
 
@@ -145,7 +172,8 @@
       failed check
       
       Additional info:
-      Column is not a factor variable
+      x a
+        Column is not a factor variable
 
 ---
 
@@ -155,8 +183,9 @@
       failed check
       
       Additional info:
-      `canonical[1:6]`: "Apr" "Aug" "Dec" "Feb" "Jan" "Jul"
-      `given[1:5]`:     "Apr" "Aug"       "Feb" "Jan" "Jul"
+      x a
+        `canonical[1:6]`: "Apr" "Aug" "Dec" "Feb" "Jan" "Jul"
+        `given[1:5]`:     "Apr" "Aug"       "Feb" "Jan" "Jul"
 
 ---
 
@@ -191,7 +220,8 @@
       `given`:     "character"
       
       Failed check: check_factor_levels
-      Column is not a factor variable
+      x a
+        Column is not a factor variable
       
     Output
       [1] FALSE
@@ -209,8 +239,9 @@
       
       Additional information:
       Failed check: check_factor_levels
-      `canonical[1:6]`: "Apr" "Aug" "Dec" "Feb" "Jan" "Jul"
-      `given[1:5]`:     "Apr" "Aug"       "Feb" "Jan" "Jul"
+      x a
+        `canonical[1:6]`: "Apr" "Aug" "Dec" "Feb" "Jan" "Jul"
+        `given[1:5]`:     "Apr" "Aug"       "Feb" "Jan" "Jul"
       
     Output
       [1] FALSE

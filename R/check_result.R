@@ -114,12 +114,22 @@ format_result_lines <- function(logical_results) {
 
 format_failed_tests <- function(result_list) {
   test_names <- paste("Failed check:", names(result_list))
-  messages <- sapply(result_list, function(x) x$msg)
+  messages <- sapply(result_list, function(x) check_info(x))
   paste(test_names, messages, sep = "\n", collapse = "\n\n")
 }
 
-conjunction <- function(r1, r2) {
-  result <- r1 & r2
-  msg <- paste(check_info(r1), check_info(r2), sep = "\n")
+conjunction <- function(result_list) {
+  result <- all(as.logical(result_list))
+  msg <- aggregate_result_list_messages(result_list)
   check_result(result, msg)
 }
+
+aggregate_result_list_messages <- function(result_list) {
+  failures <- result_list[!as.logical(result_list)]
+  messages <- sapply(seq_along(failures),
+                     function(i)
+                       paste(names(failures)[i], indent_msg(check_info(failures[[i]])), sep = '\n'))
+  names(messages) <- rep('x', length(messages))
+  rlang::format_error_bullets(messages)
+}
+

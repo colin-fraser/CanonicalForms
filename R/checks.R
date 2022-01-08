@@ -253,27 +253,6 @@ named_logical_vector_to_check_result <- function(vec, header) {
   check_result(test_passed, msg)
 }
 
-#' Internal: apply a function to columns of a dataset,
-#'
-#' With different arguments to each column. This is used by many of the
-#' check functions.
-#'
-#' @param .x a data.frame-like object
-#' @param .f a function, probably with arguments representing (actual, expected)
-#' @param function_args a named list, where the names are columns of .x
-#'   and the values are arguments to the function
-#'
-#' @return a named list with the same names as function_args
-apply_function_to_cols <- function(x, f, function_args, agg = c('all', 'any', 'none')) {
-  agg <- match.arg(agg)
-  agg <- switch(agg,
-    all = all,
-    any = any,
-    none = identity
-  )
-  purrr::imap(function_args, ~ agg(f(x[[.y]], .x), na.rm = TRUE))
-}
-
 #' Check makers
 #'
 #' Create checks to add to Canonical Forms. Each of these functions returns a function which takes
@@ -313,11 +292,7 @@ check_no_nas <- function(cols) {
 #' check_gt3 <- check_greater_than(a = 1, b = 1, .strict = TRUE)
 #' check_gt3(df) # fails
 check_greater_than <- function(..., .strict = TRUE) {
-  if (.strict) {
-    comparison <- ">"
-  } else {
-    comparison <- ">="
-  }
+  if (.strict) comparison <- ">" else comparison <- ">="
   check_comparison(..., comparison = comparison)
 }
 
@@ -356,12 +331,22 @@ dots_to_bounds <- function(...) {
 #' cb4 <- check_between(a = c(1, 4), b = c(3, 7), .strict_lower = TRUE, .strict_upper = TRUE)
 #' cb4(df) # fails
 check_between <- function(..., .strict_lower = FALSE, .strict_upper = FALSE) {
-  bounds <- dots_to_bounds(...)
-  lower <- do.call(check_greater_than, args = c(bounds$lower, list(.strict = .strict_lower)))
-  upper <- do.call(check_less_than, args = c(bounds$upper, list(.strict = .strict_upper)))
-  function(x) {
-    conjunction(lower(x), upper(x))
+  lower_func <- match.fun(if (.strict_lower) '<' else '<=')
+  upper_func <- match.fun(if (.strict_upper) '<' else '<=')
+  comparison <- function(given, bounds) {
+    res <- all(lower_func(bounds[[1]], given), na.rm = TRUE) && all(upper_func(given, bounds[[2]]), na.rm=TRUE)
+    check_result(res, sprintf("Value found outside of %s",
+                              bound_interval(bounds, .strict_lower, .strict_upper)))
   }
+  function(x) {
+    conjunction(apply_fn_to_x(comparison, x, list(...)))
+  }
+}
+
+bound_interval <- function(bounds, .strict_lower, .strict_upper) {
+  left_bracket <- if (.strict_lower) '(' else '['
+  right_bracket <- if (.strict_upper) ')' else ']'
+  sprintf("%s%s, %s%s", left_bracket, bounds[1], bounds[2], right_bracket)
 }
 
 #' Check factor levels
@@ -395,7 +380,7 @@ check_factor_levels <- function(..., .order_matters = TRUE) {
   args <- list(...)
 
   function(x) {
-    apply_fn_to_x(.check_col_factor_levels, x, args, .order_matters)
+    conjunction(apply_fn_to_x(.check_col_factor_levels, x, args, .order_matters))
   }
 }
 
@@ -409,7 +394,7 @@ check_factor_levels <- function(..., .order_matters = TRUE) {
 check_comparison <- function(..., comparison) {
   comp_fn <- col_check_compare(comparison)
   function(x) {
-    apply_fn_to_x(comp_fn, x, list(...))
+    conjunction(apply_fn_to_x(comp_fn, x, list(...)))
   }
 }
 

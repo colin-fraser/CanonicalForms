@@ -13,3 +13,8 @@ stop_if_dots_not_named <- function(...) {
     abort("Arguments to `...` must be named")
   }
 }
+
+indent_msg <- function(msg, indent = 2) {
+  indent <- paste0(rep(' ', indent), collapse = '')
+  paste(sapply(strsplit(msg, '\n'), function(x) paste0(indent, x)), collapse = '\n')
+}

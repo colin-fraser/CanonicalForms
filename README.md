@@ -238,8 +238,8 @@ starwars_small |>
 #> x MASS
 #> 
 #> Failed check: min_values
-#> Values found below minimum in the following column(s):
 #> x HEIGHT
+#>   Value(s) found below minimum of 1000
 #> 
 #> # A tibble: 87 × 3
 #>    NAME               HEIGHT  MASS

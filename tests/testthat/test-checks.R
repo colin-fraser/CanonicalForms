@@ -202,11 +202,13 @@ test_that("no nas test", {
 test_that("gt test", {
   df <- data.frame(a = c(-1, 0, NA), b = c(1, 1, NA))
   gtt <- check_greater_than(a = 0)
-  expect_false(all_pass(gtt(df)))
+  expect_fail(gtt(df))
   gtt2 <- check_greater_than(a = -2)
-  expect_true(as.logical(gtt2(df)))
+  expect_true(gtt2(df))
   gtt3 <- check_greater_than(a = -1, .strict = FALSE)
-  expect_true(as.logical(gtt3(df)))
+  expect_true(gtt3(df))
+  gtt4 <- check_greater_than(a = 0, b = 2)
+  expect_fail(gtt4(df))
 
   cf <- extract_canonical_form(df) %>%
     add_checks(gt = gtt2)
@@ -214,7 +216,7 @@ test_that("gt test", {
   expect_true(is_canonical(df, cf, verbose = F))
 
   cf <- extract_canonical_form(df) %>%
-    add_checks(gt = gtt)
+    add_checks(column_lower_bounds = gtt4)
 
   expect_false(is_canonical(df, cf, verbose = F))
 
@@ -223,29 +225,18 @@ test_that("gt test", {
 
 test_that("less than", {
   df <- data.frame(a = c(-1, 0, NA), b = c(1, 1, NA))
-  lt1 <- check_less_than(a = 1)(df)
-  expect_true(all_pass(lt1))
+  lt1 <- check_less_than(a = 1)
+  expect_true(lt1(df))
   lt2 <- check_less_than(a = 0, .strict = FALSE)
   expect_true(lt2(df))
   lt3 <- check_less_than(a = 0, .strict = TRUE)
   expect_false(lt3(df))
-  lt4 <- check_less_than(a = -2)
+  lt4 <- check_less_than(a = -2, b = 0)
   expect_false(lt4(df))
   expect_snapshot(lt1(df))
   expect_snapshot(lt2(df))
   expect_snapshot(lt3(df))
   expect_snapshot(lt4(df))
-})
-
-test_that("logical_vector_to_test_result", {
-  test_fn <- function(vec, msg = "hello") {
-    cr <- named_logical_vector_to_check_result(vec, msg)
-    as.logical(cr)
-  }
-  expect_true(test_fn(c(a = T)))
-  expect_false(test_fn(c(a = F)))
-  expect_true(test_fn(c(a = T, b = T)))
-  expect_false(test_fn(c(a = T, b = F)))
 })
 
 test_that("dots to bounds", {
@@ -266,9 +257,9 @@ test_that("check between", {
 
 test_that("test internal factor levels checker", {
   fct <- as.factor(month.abb)
-  expect_pass(.check_col_factor_levels(sort(month.abb), fct))
+  expect_pass(.check_col_factor_levels(fct, sort(month.abb), .order_matters = TRUE))
   fct2 <- as.factor(month.abb[1:5])
-  expect_fail(.check_col_factor_levels(sort(month.abb), fct2))
+  expect_fail(.check_col_factor_levels(fct2, month.abb, TRUE))
 })
 
 test_that("check factor levels", {
@@ -285,11 +276,4 @@ test_that("check factor levels", {
   expect_snapshot(is_canonical(df, cf))
   expect_snapshot(is_canonical(df2, cf))
   expect_snapshot(is_canonical(df3, cf))
-})
-
-test_that("apply function to cols", {
-  x <- data.frame(a = c(1, 2), b = c(3, 4))
-  args <- list(a = 3, b = 8)
-  f <- function(x, y) sum(x) == y
-  expect_equal(apply_function_to_cols(x, f, args), list(a = TRUE, b = FALSE))
 })

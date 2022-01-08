@@ -81,7 +81,7 @@ is_canonical <- function(x, form, verbose = TRUE) {
 check_canonical <- function(x, form, behavior = c("warn", "stop", "inform")) {
   behavior <- rlang::arg_match(behavior)
   results <- run_all_checks(x, form)
-  passing <- all(result_list_to_logical(results))
+  passing <- all(as.logical(results))
   msg <- result_list_summary(results)
   if (!passing) {
     switch(behavior,
