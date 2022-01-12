@@ -9,7 +9,7 @@ canonical_form(
   col_names,
   col_classes,
   checks = list(),
-  uncategorized_checks = list(),
+  transformers = list(),
   add_default_checks = TRUE
 )
 }
@@ -20,16 +20,16 @@ canonical_form(
 
 \item{col_classes}{a vector of column classes}
 
-\item{uncategorized_checks}{a list of checks}
+\item{transformers}{a list of canonicalization functions}
 
 \item{add_default_checks}{should the default checks be added?}
-
-\item{transformers}{a list of canonicalization functions}
 
 \item{global_checks}{a list of functions that will be used to check
 if a dataset is canonical}
 
 \item{column_checks}{a list of checks}
+
+\item{uncategorized_checks}{a list of checks}
 }
 \value{
 an object of class CanonicalForm

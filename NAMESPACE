@@ -2,7 +2,9 @@
 
 S3method(Ops,CanonicalForm)
 S3method(format,CanonicalForm)
+S3method(format,check_result)
 S3method(print,CanonicalForm)
+S3method(print,check_result)
 export("%>%")
 export(canonical_form)
 export(check_canonical)
